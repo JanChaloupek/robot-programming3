@@ -1,0 +1,9 @@
+[run]
+source = code
+omit =
+    tests/*
+    run_test.py
+
+[report]
+show_missing = True
+skip_covered = False
