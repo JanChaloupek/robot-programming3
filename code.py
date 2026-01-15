@@ -414,7 +414,6 @@ class Wheel:
         Args:
             pwm (int): Požadovaná PWM hodnota.
         """
-        print('ridePwm', self._side, pwm)
         pwm = self._sanitizePwm(pwm)
         self._targetPwm = pwm
         self._applyPwmSafely()
@@ -426,7 +425,6 @@ class Wheel:
 #               (self._lastAppliedPwm < 0 and self._targetPwm > 0)
 
     def _applyPwmRaw(self, pwm: int) -> None:
-        print('applyPwmRaw', self._side, pwm)
         """Zapíše PWM přímo do driveru."""
         if pwm >= 0:
             self._pca9633.writeTwoRegisters(self._regPwmBack, 0, self._regPwmForw, pwm)
@@ -438,14 +436,11 @@ class Wheel:
 
     def _applyPwmSafely(self) -> None:
         """Bezpečně aplikuje PWM na motor (řeší zpoždění při reverzu)."""
-        print('applyPwmSafely', self._side, self._targetPwm)
         if self._targetPwm == self._lastAppliedPwm:
-            print('no change -> dont applying')
             # pwm se nezměnilo (není důvod ho znovu poslat)
             return
 
         if self._hasDirectionChanged():
-            print('direction changed', self._side)
             # detekována změna směru – nejdříve zastav motor a chvíli počkej (100 ms)
             log.debug("Wheel direction change detected, stopping motor for safety.")
             self._applyPwmRaw(0)
