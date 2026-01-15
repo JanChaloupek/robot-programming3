@@ -14,14 +14,14 @@ Tohle je standardní praxe v profesionálních embedded týmech.
 
 # 🧭 Proč testovat embedded kód
 
-Embedded projekty jsou tradičně považované za „těžko testovatelné“, protože:
+Embedded projekty jsou tradičně těžké na testování, protože:
 
 - běží na specifickém hardware  
 - používají periferie (I2C, PWM, GPIO)  
 - reagují na fyzický svět  
 - chyby se často projeví až na reálném zařízení  
 
-Právě proto je testování **kritické**.
+Proto je testování **kritické**.
 
 Bez testů:
 
@@ -51,8 +51,8 @@ Proto projekt používá:
 - `FakeI2C` místo skutečného I2C  
 - `FakeDisplay`, `FakeLED`, `FakeButton`  
 - simulaci `adafruit_ticks`  
-- simulaci `busio.I2C`  
 - simulaci `picoed`  
+- simulaci `busio.I2C`  
 
 Díky tomu může celý projekt běžet na PC **bez jediného kusu hardware**.
 
@@ -61,13 +61,10 @@ Díky tomu může celý projekt běžet na PC **bez jediného kusu hardware**.
 # 🧪 Jak fungují testy v tomhle projektu
 
 ## 1) Testy se spouští na PC
-
-`python run_test.py`
-
-nebo s coverage:
-
-`python run_coverage.py`
-
+```
+python run_test.py
+python run_coverage.py
+```
 
 ## 2) `run_test.py` nejdřív vytvoří fake moduly
 
@@ -77,7 +74,16 @@ To je klíčové:
 - `code.py` importuje `picoed`, `busio`, `adafruit_ticks`
 - tyto moduly **musí existovat dřív**, než se importuje kód
 
-Proto se mocky registrují v `sys.modules` ještě před načtením testů.
+Proto `run_test.py` dělá:
+```
+sys.modules["picoed"] = fake_picoed
+sys.modules["adafruit_ticks"] = fake_ticks
+sys.modules["busio"] = fake_busio
+```
+To je přesně to, co umožňuje:
+- spustit celý projekt na PC
+- bez jakéhokoli hardware
+- deterministicky
 
 ## 3) Testy používají skutečnou logiku, ale falešný hardware
 
@@ -102,42 +108,51 @@ Bez jediného připojeného robota.
 
 # 🧩 Co přesně testujeme
 
-## ✔ Logiku motorů (Wheel)
-- deadzone  
-- max limit  
-- reverzní ochranu  
-- bezpečné PWM  
-- správné mapování PWM na registry  
+## ✔ Wheel (jedno kolo)
+- deadzone
+- saturaci na ±255
+- reverzní ochranu
+- správné pořadí zápisů do PCA9633
+- že změna PWM bez změny směru nezpůsobí STOP
+- že změna směru způsobí STOP + timeout  
 
-## ✔ Logiku dvou motorů (Wheels)
-- distribuci PWM  
-- update obou kol  
-- emergency shutdown  
-
-## ✔ I2C periferie
-- PCA9633 (PWM driver)
-- PCF8574 (senzorový expander)
-
+## ✔ Wheels (dvě kola)
 Testujeme:
+- rozdělení PWM na levé/pravé kolo
+- reverzní ochranu pro každé kolo zvlášť
+- update obou kol
+- emergency shutdown 
 
-- správné pořadí zápisů  
-- správné registry  
-- správné hodnoty  
+## ✔ PCA9633
+Testujeme:
+- zápis jednoho registru
+- zápis dvou registrů v přesném pořadí
+- že writeTwoRegisters dělá přesně dva zápisy
+- že writeRegister dělá přesně jeden zápis
 
-## ✔ Senzory
-- invertovanou logiku  
-- masky  
-- areActive / isAnyActive  
-- periodické čtení  
+## ✔ PCF8574
+Testujeme:
+- čtení jednoho byte
+- správnou interpretaci hodnoty
 
-## ✔ Časování
-- Timer  
-- Period  
+## ✔ Sensors
+Testujeme:
+- XOR masku 0x1C
+- areActive()
+- isAnyActive()
+- periodické čtení přes Period
 
-## ✔ Robot jako celek
-- inicializaci  
-- update smyčky  
-- emergency shutdown  
+## ✔ Timer a Period
+Testujeme:
+- že Timer nevyprší, dokud není spuštěn
+- že Timer vyprší po timeoutu
+- že Period se resetuje po vypršení
+
+## ✔ Robot
+Testujeme:
+- inicializaci
+- update smyčky
+- emergency shutdown
 
 ---
 
@@ -146,28 +161,22 @@ Testujeme:
 ## 1) Testuj chování, ne implementaci
 
 Špatně:
-
-- testovat konkrétní registry  
-- testovat počet zápisů  
-- testovat interní proměnné  
+- testovat interní proměnné
+- testovat počet zápisů u motorů (PCA9633 dělá mezizápisy)
 
 Správně:
+- testovat poslední nenulové PWM
+- testovat reverzní STOP
+- testovat, že PCA9633 dostal správné registry
 
-- testovat, že PWM je správné  
-- testovat, že reverzní ochrana funguje  
-- testovat, že senzory vrací správné hodnoty  
-- testovat, že emergency shutdown zastaví kola  
+## 2) Simuluj čas pomocí adafruit_ticks
 
-## 2) Simuluj čas
-
-Timer a Period používají `ticks_ms`.  
-V testech se čas simuluje takto:
-
+V testech:
 ```
-timer._startTime = 0
-timer.timeout_ms = -1
+ticks.set_ticks_ms(0)
+ticks.advance_ticks(100)
 ```
-
+To je deterministické a rychlé.
 
 To znamená „timeout vypršel“.
 
@@ -182,18 +191,16 @@ wheel = Wheel(DirectionEnum.LEFT, pca)
 ```
 
 Test pak může kontrolovat:
-
 ```
-self.assertEqual(hw.writes[-1], (0x62, [3, 100]))
+self.assertIn((0x62, [0x02, 10]), hw.writes)
 ```
 
 
 ## 4) Testy musí být deterministické
 
 Žádné:
-
+- skutečné čekání  
 - náhodné hodnoty  
-- skutečné časové čekání  
 - závislost na reálném hardware  
 
 ---
@@ -216,16 +223,14 @@ V embedded projektech je běžné:
 - kritická logika 100 %  
 - chybové větve a fallbacky se netestují  
 
-Tady máme: `81 %`
-
-
+Tady máme: `83 %`
 Což je **vynikající**.
 
 ---
 
 # 🏁 Shrnutí
 
-Tento projekt ukazuje profesionální přístup k testování embedded kódu:
+Tento projekt používá profesionální přístup k testování embedded kódu:
 
 - hardware je simulovaný  
 - logika je testovaná na PC  

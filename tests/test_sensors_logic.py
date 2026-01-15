@@ -1,20 +1,47 @@
 import unittest
 from code import Sensors, PCF8574, I2C
-from tests.fake_hw import FakeI2C
+from picoed import FakeI2C
+
 
 class TestSensorsLogic(unittest.TestCase):
-    def test_are_active(self):
-        hw = FakeI2C()
+    """
+    Testy logiky čtení a vyhodnocování senzorů čáry.
 
-        # raw = 0b00000100 → po XOR s 0x1C bude levý senzor aktivní
-        hw.reads.append([0b00000100])
+    Testy ověřují, že:
+        - surová hodnota z PCF8574 je správně invertována pomocí XOR masky
+        - jednotlivé senzory lze testovat pomocí areActive()
+        - skupiny senzorů lze testovat pomocí isAnyActive()
+        - FakeI2C správně simuluje hodnoty vrácené z I2C sběrnice
+
+    Tyto testy slouží jako sanity‑check správné interpretace bitových masek.
+    """
+
+    def test_are_active(self):
+        """
+        Ověříme, že areActive() správně detekuje aktivní levý senzor.
+
+        raw = 0b00000100
+        po XOR s maskou 0x1C (0b00011100) → levý senzor bude aktivní
+        """
+
+        hw = FakeI2C()
+        hw.reads.append([0b00000100])  # simulace hodnoty z I2C
 
         s = Sensors(PCF8574(I2C(hw)))
 
         self.assertTrue(s.areActive(Sensors.LineLeft))
 
     def test_is_any_active(self):
+        """
+        Ověříme, že isAnyActive() správně detekuje,
+        že alespoň jeden senzor ve skupině LineAll je aktivní.
+
+        raw = 0b00010100 → po XOR bude aktivních více senzorů
+        """
+
         hw = FakeI2C()
         hw.reads.append([0b00010100])
+
         s = Sensors(PCF8574(I2C(hw)))
+
         self.assertTrue(s.isAnyActive(Sensors.LineAll))

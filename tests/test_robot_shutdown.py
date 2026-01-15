@@ -1,9 +1,31 @@
 import unittest
 from code import Robot, I2C
-from tests.fake_hw import FakeI2C
+from picoed import FakeI2C
+
 
 class TestRobotShutdown(unittest.TestCase):
+    """
+    Testy nouzového vypnutí robota.
+
+    Tento test ověřuje, že metoda emergencyShutdown():
+        - existuje
+        - lze ji zavolat bez výjimky
+        - nevyžaduje žádné parametry
+        - je bezpečná i při prázdném nebo neaktivním hardware
+
+    Test je navržen jako sanity‑check:
+        - neověřuje konkrétní chování motorů
+        - neověřuje logiku reverzu
+        - pouze zajišťuje, že metoda je implementována a stabilní
+    """
+
     def test_robot_shutdown(self):
+        """
+        Ověříme, že emergencyShutdown() lze zavolat
+        a metoda nespadne ani v základní konfiguraci robota.
+        """
+
         robot = Robot(I2C(FakeI2C()))
+
         # jen ověříme, že metoda existuje a nepadá
         robot.emergencyShutdown()

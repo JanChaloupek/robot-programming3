@@ -1,6 +1,6 @@
 import unittest
 from code import Sensors, PCF8574, I2C
-from tests.fake_hw import FakeI2C
+from picoed import FakeI2C
 
 class TestSensors(unittest.TestCase):
     def test_read_and_invert(self):

@@ -3,26 +3,37 @@ import os
 import unittest
 
 # ---------------------------------------------------------
-# Fake HW modules for testing on PC
+# 0) Přidat lib_vsc_only do sys.path
 # ---------------------------------------------------------
-from tests.fake_hw import (
-    ticks_ms, ticks_diff,
-    FakeI2C, FakeDisplay, FakeLED, FakeButton
-)
+BASE_DIR = os.path.dirname(__file__)
+LIB_DIR = os.path.join(BASE_DIR, "lib_vsc_only")
+sys.path.insert(0, LIB_DIR)
 
-# Fake adafruit_ticks
-sys.modules["adafruit_ticks"] = type("adafruit_ticks", (), {
-    "ticks_ms": ticks_ms,
-    "ticks_diff": ticks_diff
-})
+# ---------------------------------------------------------
+# 1) Přesměrování adafruit_ticks → naše deterministická verze
+#    (umístěná v lib_vsc_only/adafruit_ticks.py)
+# ---------------------------------------------------------
+import lib_vsc_only.adafruit_ticks as fake_ticks
+sys.modules["adafruit_ticks"] = fake_ticks
 
-# Fake picoed
-sys.modules["picoed"] = type("picoed", (), {
-    "i2c": FakeI2C(),
-    "display": FakeDisplay(),
-    "led": FakeLED(),
-    "button_a": FakeButton(),
-})
+
+# ---------------------------------------------------------
+# 2) Přesměrování picoed → lib_vsc_only.picoed
+# ---------------------------------------------------------
+import lib_vsc_only.picoed as picoed_stub
+sys.modules["picoed"] = picoed_stub
+
+
+# ---------------------------------------------------------
+# 3) Přesměrování time → fake_time
+# ---------------------------------------------------------
+import tests.fake_time as fake_time
+sys.modules["time"] = fake_time
+
+
+# ---------------------------------------------------------
+# 4) Přesměrování board, neopixel, busio
+# ---------------------------------------------------------
 
 # Fake board
 sys.modules["board"] = type("board", (), {"P0": 0})
@@ -41,8 +52,9 @@ sys.modules["busio"] = type("busio", (), {
     "I2C": FakeBusIO_I2C
 })
 
+
 # ---------------------------------------------------------
-# 2) Barevný výstup
+# 4) Barevný výstup
 # ---------------------------------------------------------
 class Color:
     RESET = "\033[0m"
@@ -75,7 +87,7 @@ class ColorTextTestRunner(unittest.TextTestRunner):
 
 
 # ---------------------------------------------------------
-# 3) Hlavní funkce
+# 5) Hlavní funkce
 # ---------------------------------------------------------
 def main():
     print(f"{Color.CYAN}{Color.BOLD}Running tests...{Color.RESET}")
