@@ -244,3 +244,4 @@ Tohle je přesně ten typ architektury, který umožňuje:
 - rychlé ladění  
 - robustní roboty  
 - čistý kód  
+
