@@ -192,9 +192,8 @@ wheel = Wheel(DirectionEnum.LEFT, pca)
 
 Test pak může kontrolovat:
 ```
-self.assertIn((0x62, [0x02, 10]), hw.writes)
+self.assertIn((0x62, b"\x02\x0A"), hw.write_history)
 ```
-
 
 ## 4) Testy musí být deterministické
 
@@ -244,4 +243,3 @@ Tohle je přesně ten typ architektury, který umožňuje:
 - rychlé ladění  
 - robustní roboty  
 - čistý kód  
-
