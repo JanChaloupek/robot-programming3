@@ -1,6 +1,7 @@
 import unittest
-from code import Sensors, PCF8574, I2C
-from picoed import FakeI2C
+from joycar.sensors import Sensors
+from lib_vsc_only.busio import I2C as FakeI2C
+from tests.create import createSensors
 
 
 class TestSensorsLogic(unittest.TestCase):
@@ -25,9 +26,9 @@ class TestSensorsLogic(unittest.TestCase):
         """
 
         hw = FakeI2C()
-        hw.reads.append([0b00000100])  # simulace hodnoty z I2C
+        hw.queue_read([0b00000100])  # simulace hodnoty z I2C
 
-        s = Sensors(PCF8574(I2C(hw)))
+        s = createSensors(hw)
 
         self.assertTrue(s.areActive(Sensors.LineLeft))
 
@@ -40,8 +41,8 @@ class TestSensorsLogic(unittest.TestCase):
         """
 
         hw = FakeI2C()
-        hw.reads.append([0b00010100])
+        hw.queue_read([0b00010100])
 
-        s = Sensors(PCF8574(I2C(hw)))
+        s = createSensors(hw)
 
         self.assertTrue(s.isAnyActive(Sensors.LineAll))

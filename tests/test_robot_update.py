@@ -16,24 +16,21 @@ Používáme řízený čas pomocí adafruit_ticks:
 
 import unittest
 import adafruit_ticks as ticks
-from code import Robot, I2C
-from picoed import FakeI2C
-
+from lib_vsc_only.busio import I2C as FakeI2C
+from tests.create import createRobot
 
 class TestRobotUpdate(unittest.TestCase):
     """Testy hlavní update smyčky robota."""
 
     def test_robot_update_calls_subsystems(self):
         """
-        Ověříme, že Robot.update() zavolá:
-            - sensors.update()
-            - wheels.update()
+        Ověříme, že Robot.update() zavolá: sensors.update(), wheels.update()
 
         Nepotřebujeme testovat logiku uvnitř subsystémů,
         pouze ověřujeme, že hlavní smyčka je správně propojená.
         """
 
-        robot = Robot(I2C(FakeI2C()))
+        robot = createRobot(FakeI2C())
 
         # Fake data pro senzory – simulujeme změnu
         robot.sensors._dataPrev = 0

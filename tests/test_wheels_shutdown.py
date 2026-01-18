@@ -15,8 +15,9 @@ Používáme FakeWheel, který simuluje úspěch nebo selhání.
 """
 
 import unittest
-from code import Wheels, PCA9633, I2C
-from picoed import FakeI2C
+from lib_vsc_only.busio import I2C as FakeI2C
+from tests.create import createWheels
+
 
 
 class FakeWheel:
@@ -34,17 +35,13 @@ class FakeWheel:
             raise RuntimeError("Wheel failure")
         self.stopped = True
 
-
 class TestEmergencyShutdown(unittest.TestCase):
     """Testy nouzového zastavení všech kol."""
 
     def test_shutdown_success(self):
-        """
-        Ověříme, že pokud žádné kolo neselže,
-        emergencyShutdown() zastaví obě kola.
-        """
-        hw = FakeI2C()
-        wheels = Wheels(PCA9633(I2C(hw)))
+        """Ověříme, že pokud žádné kolo neselže, emergencyShutdown() zastaví obě kola."""
+        hw_i2c = FakeI2C()
+        wheels = createWheels(hw_i2c)
 
         wheels._wheels = {
             "left": FakeWheel(),
@@ -57,12 +54,9 @@ class TestEmergencyShutdown(unittest.TestCase):
         self.assertTrue(wheels._wheels["right"].stopped)
 
     def test_shutdown_with_failure(self):
-        """
-        Ověříme, že pokud jedno kolo selže,
-        emergencyShutdown() vyhodí výjimku RuntimeError.
-        """
-        hw = FakeI2C()
-        wheels = Wheels(PCA9633(I2C(hw)))
+        """Ověříme, že pokud jedno kolo selže, emergencyShutdown() vyhodí výjimku RuntimeError."""
+        hw_i2c = FakeI2C()
+        wheels = createWheels(hw_i2c)
 
         wheels._wheels = {
             "left": FakeWheel(),

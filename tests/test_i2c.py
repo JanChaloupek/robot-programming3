@@ -1,6 +1,6 @@
 import unittest
-from code import I2C
-from picoed import FakeI2C
+from joycar.i2c import I2C
+from lib_vsc_only.busio import I2C as FakeI2C
 
 
 class TestI2C(unittest.TestCase):
@@ -33,6 +33,6 @@ class TestI2C(unittest.TestCase):
         hw = FakeI2C()
         i2c = I2C(hw)
 
-        i2c.write(0x10, b"\x01\x02")
+        i2c.write(0x10, bytes([0x01, 0x02]))
 
-        self.assertEqual(hw.writes[-1], (0x10, [1, 2]))
+        self.assertEqual(hw.write_history[-1], (0x10, bytes([0x01, 0x02])))

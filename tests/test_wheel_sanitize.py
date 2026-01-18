@@ -14,16 +14,15 @@ nikdy nepoužívá PWM přímo, ale vždy ho nejprve normalizuje.
 """
 
 import unittest
-from code import Wheel, DirectionEnum, PCA9633, I2C
-from picoed import FakeI2C
-
-
+from joycar.wheel import DirectionEnum
+from lib_vsc_only.busio import I2C as FakeI2C
+from tests.create import createWheel
 class TestWheelSanitize(unittest.TestCase):
     """Testy normalizace PWM pomocí _sanitizePwm()."""
 
     def setUp(self):
         self.hw = FakeI2C()
-        self.wheel = Wheel(DirectionEnum.LEFT, PCA9633(I2C(self.hw)))
+        self.wheel = createWheel(self.hw, DirectionEnum.LEFT)
 
     def test_zero_stays_zero(self):
         """Hodnota 0 musí zůstat 0."""

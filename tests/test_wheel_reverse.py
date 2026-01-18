@@ -22,9 +22,9 @@ Reverzní sekvence:
 
 import unittest
 import adafruit_ticks as ticks
-from code import Wheel, DirectionEnum, PCA9633, I2C
-from picoed import FakeI2C
-
+from joycar import DirectionEnum
+from lib_vsc_only.busio import I2C as FakeI2C
+from tests.create import createWheel
 
 class TestWheelReverse(unittest.TestCase):
     """Testy reverzní ochrany jednoho kola."""
@@ -32,13 +32,12 @@ class TestWheelReverse(unittest.TestCase):
     def setUp(self):
         """Každý test začíná čistým FakeI2C a novým kolem."""
         self.hw = FakeI2C()
-        self.pca = PCA9633(I2C(self.hw))
-        self.wheel = Wheel(DirectionEnum.LEFT, self.pca)
+        self.wheel = createWheel(self.hw, DirectionEnum.LEFT)
 
     def test_reverse_sequence(self):
         """
-        Ověříme kompletní reverzní sekvenci:
-        - dopředu → STOP → čekání → dozadu
+        Ověříme kompletní reverzní sekvenci: \
+        - dopředu → STOP → čekání → dozadu \
         - test funguje i při změně reverzního timeoutu studenty
         """
 
@@ -50,27 +49,27 @@ class TestWheelReverse(unittest.TestCase):
         # 1) Rozjeď dopředu
         # ---------------------------------------------------------
         ticks.set_ticks_ms(0)
-        self.wheel.ridePwm(100)
+        self.wheel.setSpeed(100)
         self.wheel.update()
 
         # poslední zápis musí být PWM=100
-        self.assertEqual(self.hw.writes[-1][1][-1], 100)
+        self.assertEqual(self.hw.write_history[-1][1][-1], 100)
 
         # ---------------------------------------------------------
         # 2) Požaduj reverz (dopředu → dozadu)
         # ---------------------------------------------------------
-        self.wheel.ridePwm(-100)
+        self.wheel.setSpeed(-100)
         self.wheel.update()
 
         # první krok reverzu = STOP
-        self.assertEqual(self.hw.writes[-1][1][-1], 0)
+        self.assertEqual(self.hw.write_history[-1][1][-1], 0)
 
         # ---------------------------------------------------------
         # 3) Timer ještě nevypršel → stále STOP
         # ---------------------------------------------------------
         ticks.advance_ticks(reverse_timeout_min)
         self.wheel.update()
-        self.assertEqual(self.hw.writes[-1][1][-1], 0)
+        self.assertEqual(self.hw.write_history[-1][1][-1], 0)
 
         # ---------------------------------------------------------
         # 4) Simuluj vypršení reverzního timeoutu
@@ -81,4 +80,4 @@ class TestWheelReverse(unittest.TestCase):
         # ---------------------------------------------------------
         # 5) Teď se musí aplikovat nový PWM
         # ---------------------------------------------------------
-        self.assertEqual(self.hw.writes[-1][1][-1], 100)  # |-100| = 100
+        self.assertEqual(self.hw.write_history[-1][1][-1], 100)  # |-100| = 100

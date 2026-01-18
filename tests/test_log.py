@@ -1,5 +1,5 @@
 import unittest
-from code import Log, LogLevelEnum
+from utils.log import Log, LogLevelEnum
 
 
 class TestLog(unittest.TestCase):

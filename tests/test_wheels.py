@@ -11,19 +11,17 @@ Pouze ověřuje, že konstruktor správně vytvoří obě kola.
 """
 
 import unittest
-from code import Wheels, PCA9633, I2C
-from picoed import FakeI2C
-
+from lib_vsc_only.busio import I2C as FakeI2C
+from tests.create import createWheels
 
 class TestWheels(unittest.TestCase):
     """Testy základní struktury objektu Wheels."""
 
     def test_left_right(self):
         """
-        Ověříme, že Wheels po vytvoření obsahuje
-        atributy left a right, které nejsou None.
+        Ověříme, že Wheels po vytvoření obsahuje atributy left a right, které nejsou None.
         """
-        w = Wheels(PCA9633(I2C(FakeI2C())))
+        w = createWheels(FakeI2C())
 
         self.assertIsNotNone(w.left)
         self.assertIsNotNone(w.right)

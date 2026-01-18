@@ -1,6 +1,6 @@
 import unittest
-from code import PCF8574, I2C
-from picoed import FakeI2C
+from joycar import PCF8574, I2C
+from lib_vsc_only.busio import I2C as FakeI2C
 
 
 class TestPCF8574(unittest.TestCase):
@@ -25,7 +25,7 @@ class TestPCF8574(unittest.TestCase):
         """
 
         hw = FakeI2C()
-        hw.reads.append([0xAA])  # simulace hodnoty vrácené z I2C
+        hw.queue_read([0xAA])  # simulace hodnoty vrácené z I2C
 
         p = PCF8574(I2C(hw))
 

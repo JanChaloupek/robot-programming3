@@ -10,33 +10,27 @@ s PWM přímo, ale nejprve ho normalizuje do bezpečného rozsahu.
 """
 
 import unittest
-from code import Wheel, DirectionEnum, PCA9633, I2C
-from picoed import FakeI2C
-
+from joycar import DirectionEnum
+from lib_vsc_only.busio import I2C as FakeI2C
+from tests.create import createWheel
 
 class TestWheel(unittest.TestCase):
     """Testy normalizace PWM v třídě Wheel."""
 
     def test_apply_deadzone(self):
-        """
-        Ověříme, že velmi malé PWM (např. 5) se zvýší
-        na minimální hodnotu dead‑zony (např. 20).
-        """
-        hw = FakeI2C()
-        w = Wheel(DirectionEnum.LEFT, PCA9633(I2C(hw)))
+        """Ověříme, že velmi malé PWM (např. 5) se zvýší na minimální hodnotu dead‑zony (např. 20)."""
+        hw_i2c = FakeI2C()
+        w = createWheel(hw_i2c, DirectionEnum.LEFT)
 
-        w.ridePwm(5)
+        w.setSpeed(5)
 
         self.assertEqual(w._targetPwm, 20)
 
     def test_max_limit(self):
-        """
-        Ověříme, že příliš velké PWM (např. 999)
-        se omezí na maximální hodnotu 255.
-        """
+        """Ověříme, že příliš velké PWM (např. 999) se omezí na maximální hodnotu 255."""
         hw = FakeI2C()
-        w = Wheel(DirectionEnum.LEFT, PCA9633(I2C(hw)))
+        w = createWheel(hw, DirectionEnum.LEFT)
 
-        w.ridePwm(999)
+        w.setSpeed(999)
 
         self.assertEqual(w._targetPwm, 255)

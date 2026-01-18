@@ -10,8 +10,8 @@ zda jeho update() bylo zavoláno.
 """
 
 import unittest
-from code import Wheels, PCA9633, I2C
-from picoed import FakeI2C
+from lib_vsc_only.busio import I2C as FakeI2C
+from tests.create import createWheels
 
 
 class FakeWheel:
@@ -32,15 +32,14 @@ class TestWheelsUpdate(unittest.TestCase):
 
     def test_update_calls_both_wheels(self):
         """
-        Ověříme, že Wheels.update() zavolá update()
-        na levém i pravém kole.
+        Ověříme, že Wheels.update() zavolá update() na levém i pravém kole.
 
         Tento test neřeší reverzní logiku ani PWM,
         pouze ověřuje správnou strukturu volání.
         """
 
         hw = FakeI2C()
-        wheels = Wheels(PCA9633(I2C(hw)))
+        wheels = createWheels(hw)
 
         # Nahradíme skutečná kola jednoduchými FakeWheel objekty
         wheels._wheels = {

@@ -13,7 +13,7 @@ na reálném MicroPython zařízení.
 
 import unittest
 import adafruit_ticks as ticks
-from code import Timer, Period
+from utils import Timer, Period
 
 
 class TestTimer(unittest.TestCase):

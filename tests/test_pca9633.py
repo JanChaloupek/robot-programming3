@@ -1,6 +1,6 @@
 import unittest
-from code import PCA9633, I2C
-from picoed import FakeI2C
+from joycar import PCA9633, I2C
+from lib_vsc_only.busio import I2C as FakeI2C
 
 
 class TestPCA9633(unittest.TestCase):
@@ -33,4 +33,4 @@ class TestPCA9633(unittest.TestCase):
         p.writeRegister(0x10, 0x55)
 
         # Ověříme, že poslední zápis odpovídá očekávanému formátu
-        self.assertEqual(hw.writes[-1], (0x62, [0x10, 0x55]))
+        self.assertEqual(hw.write_history[-1], (0x62, bytes([0x10, 0x55])))

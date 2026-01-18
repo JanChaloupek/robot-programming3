@@ -1,7 +1,6 @@
 import unittest
-from code import Sensors, PCF8574, I2C
-from picoed import FakeI2C
-
+from lib_vsc_only.busio import I2C as FakeI2C
+from tests.create import createSensors
 
 class TestSensorsUpdate(unittest.TestCase):
     """
@@ -26,15 +25,14 @@ class TestSensorsUpdate(unittest.TestCase):
         """
 
         hw = FakeI2C()
-        hw.reads.append([0b00011100])  # první čtení při konstrukci
-
-        s = Sensors(PCF8574(I2C(hw)))
+        hw.queue_read(bytes([0b00011100]))  # první čtení při konstrukci
+        s = createSensors(hw)
 
         # simulace vypršení periody
         s._periodRead._startTime = 0
         s._periodRead.timeout_ms = -1
 
-        hw.reads.append([0b00000000])  # nové čtení při update()
+        hw.queue_read(bytes([0b00000000]))  # nové čtení při update()
 
         s.update()
 

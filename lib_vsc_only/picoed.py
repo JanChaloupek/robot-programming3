@@ -1,49 +1,34 @@
 """
 picoed.py – společný stub pro VS Code a fake hardware pro testy.
 
-Tento soubor:
-- poskytuje API kompatibilní s reálným pico:ed modulem v CircuitPythonu
-- neimportuje žádné hardware knihovny (digitalio, busio, microcontroller)
-- funguje jako fake hardware při testech na PC
-- poskytuje třídy a atributy pro VS Code (autocomplete, typy)
+Tento modul napodobuje CircuitPython modul `picoed`, který poskytuje
+předpřipravené instance zařízení na desce pico:ed:
 
-Reálný pico:ed modul je součástí CircuitPythonu a NEpublikuje se.
-Tento soubor slouží pouze pro vývoj a testování na PC.
+- i2c        – I2C sběrnice
+- display    – LED displej
+- button_a   – levé tlačítko
+- button_b   – pravé tlačítko
+- led        – stavová LED
+- music      – zvukový výstup
+
+V této fake verzi:
+- všechny objekty jsou simulované
+- I2C používá busio.I2C
+- display ukládá pixely do bufferu
+- tlačítka mají simulovaný stav
+- LED má stav True/False
+- vše je deterministické a testovatelné
 """
 
+import board
+from busio import I2C
+
+
 # ---------------------------------------------------------
-# Fake I2C (pro PCA9633 a další I2C zařízení)
+# I2C sběrnice (jediná implementace z busio.I2C)
 # ---------------------------------------------------------
 
-class FakeI2C:
-    def __init__(self):
-        self.locked = False
-        self.writes = []
-        self.reads = []
-
-    def try_lock(self):
-        if not self.locked:
-            self.locked = True
-            return True
-        return False
-
-    def unlock(self):
-        self.locked = False
-
-    def scan(self):
-        return [0x38, 0x62]
-
-    def readfrom_into(self, addr, buf, start=0, end=None):
-        data = self.reads.pop(0) if self.reads else [0]
-        for i in range(len(buf)):
-            buf[i] = data[i] if i < len(data) else 0
-
-    def writeto(self, addr, buf):
-        self.writes.append((addr, list(buf)))
-
-    def writeto_then_readfrom(self, addr, wbuf, rbuf):
-        self.writes.append((addr, list(wbuf)))
-        self.readfrom_into(addr, rbuf)
+i2c = I2C(board.I2C0_SCL, board.I2C0_SDA)
 
 
 # ---------------------------------------------------------
@@ -120,7 +105,7 @@ class Button:
 
 
 # ---------------------------------------------------------
-# Fake Image (jen placeholder)
+# Fake Image (placeholder)
 # ---------------------------------------------------------
 
 class Image:
@@ -168,7 +153,6 @@ class Music:
 # Modulové instance (odpovídají reálnému pico:ed API)
 # ---------------------------------------------------------
 
-i2c = FakeI2C()
 display = Display(i2c)
 button_a = Button()
 button_b = Button()

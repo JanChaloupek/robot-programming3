@@ -1,6 +1,6 @@
 import unittest
-from code import PCA9633, I2C
-from picoed import FakeI2C
+from joycar import PCA9633, I2C
+from lib_vsc_only.busio import I2C as FakeI2C
 
 
 class TestPCA9633Sequence(unittest.TestCase):
@@ -34,8 +34,8 @@ class TestPCA9633Sequence(unittest.TestCase):
         p.writeTwoRegisters(0x02, 10, 0x03, 20)
 
         # Ověříme, že byly provedeny přesně dva zápisy
-        self.assertEqual(len(hw.writes), 2)
+        self.assertEqual(len(hw.write_history), 2)
 
         # Ověříme obsah zápisů
-        self.assertEqual(hw.writes[0], (0x62, [0x02, 10]))
-        self.assertEqual(hw.writes[1], (0x62, [0x03, 20]))
+        self.assertEqual(hw.write_history[0], (0x62, bytes([0x02, 10])))
+        self.assertEqual(hw.write_history[1], (0x62, bytes([0x03, 20])))

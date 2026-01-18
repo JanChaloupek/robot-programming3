@@ -1,10 +1,10 @@
 """
 adafruit_ticks.py – jednoduchý stub + fakeHW pro výuku a testování
 
-Tento modul napodobuje chování MicroPython knihovny `adafruit_ticks`,
+Tento modul napodobuje chování CircuitPython knihovny `adafruit_ticks`,
 která poskytuje monotónní časovač založený na milisekundách.
 
-V reálném MicroPythonu:
+V reálném CircuitPythonu:
 - `ticks_ms()` vrací stále rostoucí čas v ms (s přetečením po ~6 dnech)
 - `ticks_add()` a `ticks_diff()` řeší přetečení bezpečným způsobem
 - používá se pro časování, periodické úlohy, debounce tlačítek atd.

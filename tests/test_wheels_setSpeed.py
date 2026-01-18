@@ -2,7 +2,7 @@
 Test rozdělení PWM na dvě kola (Wheels) s reverzní ochranou.
 
 Tento test ověřuje realistické chování:
-    - ridePwm okamžitě aplikuje PWM, pokud se nemění znaménko
+    - setSpeed okamžitě aplikuje PWM, pokud se nemění znaménko
     - reverzní STOP se spustí pouze u kol, která mění směr
     - po reverzní ochranné době se aplikují nové PWM hodnoty
 
@@ -20,23 +20,22 @@ Používáme dvě hranice:
 
 import unittest
 import adafruit_ticks as ticks
-from code import Wheels, PCA9633, I2C
-from picoed import FakeI2C
+from lib_vsc_only.busio import I2C as FakeI2C
+from tests.create import createWheels
 
-
-class TestWheelsRidePwm(unittest.TestCase):
+class TestWheelsSetSpeed(unittest.TestCase):
     """Testy správného rozdělení PWM na dvě kola podle realistického modelu."""
 
-    def test_ride_pwm_assigns_correctly(self):
+    def test_set_speed_assigns_correctly(self):
         """
-        Ověříme, že:
-        - ridePwm okamžitě aplikuje PWM, pokud se nemění znaménko
-        - reverzní STOP se spustí pouze u kol, která mění směr
+        Ověříme, že: \
+        - setSpeed okamžitě aplikuje PWM, pokud se nemění znaménko \
+        - reverzní STOP se spustí pouze u kol, která mění směr \
         - po vypršení reverzního timeoutu se aplikují nové PWM hodnoty
         """
 
-        hw = FakeI2C()
-        wheels = Wheels(PCA9633(I2C(hw)))
+        hw_i2c = FakeI2C()
+        wheels = createWheels(hw_i2c)
 
         reverse_timeout_min = 50     # ještě nesmí vypršet
         reverse_timeout_max = 1200   # už musí vypršet
@@ -46,10 +45,10 @@ class TestWheelsRidePwm(unittest.TestCase):
         #    → podle modelu se má PWM aplikovat okamžitě
         # ---------------------------------------------------------
         ticks.set_ticks_ms(0)
-        wheels.ridePwm([100, -50])
+        wheels.setSpeed({"left": 100, "right": -50})
 
         # Najdeme poslední nenulové PWM hodnoty
-        nonzero_pwms = [w[1][1] for w in hw.writes if w[1][1] != 0]
+        nonzero_pwms = [w[1][1] for w in hw_i2c.write_history if w[1][1] != 0]
 
         self.assertIn(100, nonzero_pwms)   # levé kolo
         self.assertIn(50, nonzero_pwms)    # pravé kolo (|-50| = 50)
@@ -59,17 +58,17 @@ class TestWheelsRidePwm(unittest.TestCase):
         # ---------------------------------------------------------
         wheels.update()
 
-        nonzero_pwms = [w[1][1] for w in hw.writes if w[1][1] != 0]
+        nonzero_pwms = [w[1][1] for w in hw_i2c.write_history if w[1][1] != 0]
         self.assertIn(100, nonzero_pwms)
         self.assertIn(50, nonzero_pwms)
 
         # ---------------------------------------------------------
         # 3) Změna znaménka → reverzní STOP pouze u kol, která mění směr
         # ---------------------------------------------------------
-        wheels.ridePwm([-80, 30])   # levé: 100 → -80, pravé: -50 → 30
+        wheels.setSpeed({"left": -80, "right": 30})   # levé: 100 → -80, pravé: -50 → 30
 
         wheels.update()  # první update po reverzu = STOP
-        last_pwms = [w[1][1] for w in hw.writes[-2:]]
+        last_pwms = [w[1][1] for w in hw_i2c.write_history[-2:]]
         self.assertEqual(last_pwms, [0, 0])
 
         # ---------------------------------------------------------
@@ -78,7 +77,7 @@ class TestWheelsRidePwm(unittest.TestCase):
         ticks.advance_ticks(reverse_timeout_min)
         wheels.update()
 
-        last_pwms = [w[1][1] for w in hw.writes[-2:]]
+        last_pwms = [w[1][1] for w in hw_i2c.write_history[-2:]]
         self.assertEqual(last_pwms, [0, 0])
 
         # ---------------------------------------------------------
@@ -87,7 +86,7 @@ class TestWheelsRidePwm(unittest.TestCase):
         ticks.advance_ticks(reverse_timeout_max)
         wheels.update()
 
-        nonzero_pwms = [w[1][1] for w in hw.writes if w[1][1] != 0]
+        nonzero_pwms = [w[1][1] for w in hw_i2c.write_history if w[1][1] != 0]
 
         self.assertIn(80, nonzero_pwms)   # levé kolo (|-80| = 80)
         self.assertIn(30, nonzero_pwms)   # pravé kolo

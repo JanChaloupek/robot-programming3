@@ -1,6 +1,39 @@
+"""
+run_test.py – spouštěč unit testů s fake hardwarem
+
+Tento skript umožňuje spouštět embedded kód na PC bez skutečného hardware.
+Zajišťuje:
+
+1) Přidání adresáře lib_vsc_only/ do sys.path
+   → VS Code i testy mohou importovat fake moduly (board, neopixel, busio, …)
+
+2) Přesměrování importů:
+      import board
+      import neopixel
+      import digitalio
+      import analogio
+      import busio
+      import pwmio
+      import picoed
+      import adafruit_ticks
+      import time
+   → na jejich fake verze v lib_vsc_only/
+
+3) Deterministické časování přes lib_vsc_only/time.py a lib_vsc_only/adafruit_ticks.py
+
+4) Barevný výstup unittest výsledků
+
+Tento skript je klíčový pro:
+- testování logiky bez hardware
+- deterministické testy bez čekání
+- kompatibilitu s CircuitPython API
+"""
+
 import sys
 import os
 import unittest
+import importlib
+
 
 # ---------------------------------------------------------
 # 0) Přidat lib_vsc_only do sys.path
@@ -9,52 +42,48 @@ BASE_DIR = os.path.dirname(__file__)
 LIB_DIR = os.path.join(BASE_DIR, "lib_vsc_only")
 sys.path.insert(0, LIB_DIR)
 
-# ---------------------------------------------------------
-# 1) Přesměrování adafruit_ticks → naše deterministická verze
-#    (umístěná v lib_vsc_only/adafruit_ticks.py)
-# ---------------------------------------------------------
-import lib_vsc_only.adafruit_ticks as fake_ticks
-sys.modules["adafruit_ticks"] = fake_ticks
-
 
 # ---------------------------------------------------------
-# 2) Přesměrování picoed → lib_vsc_only.picoed
+# Helper: načti fake modul z lib_vsc_only a zaregistruj ho
 # ---------------------------------------------------------
-import lib_vsc_only.picoed as picoed_stub
-sys.modules["picoed"] = picoed_stub
+def load_fake(name: str):
+    """
+    Načte modul lib_vsc_only.<name> a zaregistruje ho jako <name>.
 
+    Příklad:
+        load_fake("board") → sys.modules["board"] = lib_vsc_only.board
 
-# ---------------------------------------------------------
-# 3) Přesměrování time → fake_time
-# ---------------------------------------------------------
-import tests.fake_time as fake_time
-sys.modules["time"] = fake_time
+    Tím se zajistí, že import board bude používat fake verzi.
+    """
+    module = importlib.import_module(f"lib_vsc_only.{name}")
+    sys.modules[name] = module
+    return module
 
 
 # ---------------------------------------------------------
-# 4) Přesměrování board, neopixel, busio
+# 1) Přesměrování modulů na fake verze
 # ---------------------------------------------------------
 
-# Fake board
-sys.modules["board"] = type("board", (), {"P0": 0})
+# Deterministické časování
+load_fake("adafruit_ticks")
 
-# Fake neopixel
-sys.modules["neopixel"] = type("neopixel", (), {
-    "NeoPixel": lambda *args, **kwargs: None
-})
+# Fake picoed (tlačítka, display, I2C…)
+load_fake("picoed")
 
-# Fake busio
-class FakeBusIO_I2C:
-    def __init__(self, *args, **kwargs):
-        pass
+# Fake time (deterministický čas pro Timer/Period)
+load_fake("time")
 
-sys.modules["busio"] = type("busio", (), {
-    "I2C": FakeBusIO_I2C
-})
+# Fake hardware moduly
+load_fake("board")
+load_fake("neopixel")
+load_fake("digitalio")
+load_fake("analogio")
+load_fake("busio")
+load_fake("pwmio")
 
 
 # ---------------------------------------------------------
-# 4) Barevný výstup
+# 2) Barevný výstup testů
 # ---------------------------------------------------------
 class Color:
     RESET = "\033[0m"
@@ -66,6 +95,9 @@ class Color:
 
 
 class ColorTextTestResult(unittest.TextTestResult):
+    """
+    Rozšířený výstup unittest výsledků s barvami.
+    """
     def addSuccess(self, test):
         super().addSuccess(test)
         self.stream.write(f"{Color.GREEN}✔ PASS{Color.RESET} ")
@@ -83,13 +115,19 @@ class ColorTextTestResult(unittest.TextTestResult):
 
 
 class ColorTextTestRunner(unittest.TextTestRunner):
+    """
+    Test runner používající barevné výsledky.
+    """
     resultclass = ColorTextTestResult
 
 
 # ---------------------------------------------------------
-# 5) Hlavní funkce
+# 3) Hlavní funkce
 # ---------------------------------------------------------
 def main():
+    """
+    Najde všechny testy v adresáři tests/ a spustí je.
+    """
     print(f"{Color.CYAN}{Color.BOLD}Running tests...{Color.RESET}")
 
     test_dir = os.path.join(os.path.dirname(__file__), "tests")

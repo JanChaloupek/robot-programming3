@@ -1,6 +1,6 @@
 import unittest
-from code import Robot, I2C
-from picoed import FakeI2C
+from lib_vsc_only.busio import I2C as FakeI2C
+from tests.create import createRobot
 
 
 class TestRobotShutdown(unittest.TestCase):
@@ -25,7 +25,7 @@ class TestRobotShutdown(unittest.TestCase):
         a metoda nespadne ani v základní konfiguraci robota.
         """
 
-        robot = Robot(I2C(FakeI2C()))
+        robot = createRobot(FakeI2C())
 
         # jen ověříme, že metoda existuje a nepadá
         robot.emergencyShutdown()

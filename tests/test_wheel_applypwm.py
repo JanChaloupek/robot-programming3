@@ -10,24 +10,20 @@ Neřešíme reverzní ochranu ani časování – pouze ověřujeme,
 """
 
 import unittest
-from code import Wheel, DirectionEnum, PCA9633, I2C
-from picoed import FakeI2C
-
+from joycar import DirectionEnum
+from lib_vsc_only.busio import I2C as FakeI2C
+from tests.create import createWheel
 
 class TestWheelApplyPwm(unittest.TestCase):
     """Testy přímé aplikace PWM bez reverzní logiky."""
 
     def test_apply_pwm_without_reverse(self):
-        """
-        Ověříme, že pokud se nemění směr,
-        Wheel.update() okamžitě zapíše PWM do PCA9633.
-        """
+        """Ověříme, že pokud  createWheelse nemění směr, Wheel.update() okamžitě zapíše PWM do PCA9633."""
 
         hw = FakeI2C()
-        wheel = Wheel(DirectionEnum.LEFT, PCA9633(I2C(hw)))
-
-        wheel.ridePwm(100)
+        wheel = createWheel(hw, DirectionEnum.LEFT)
+        wheel.setSpeed(100)
         wheel.update()
 
         # poslední zápis musí být PWM = 100
-        self.assertEqual(hw.writes[-1][1][-1], 100)
+        self.assertEqual(hw.write_history[-1][1][-1], 100)

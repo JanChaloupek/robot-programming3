@@ -1,6 +1,6 @@
 import unittest
-from code import Robot, I2C
-from picoed import FakeI2C
+from lib_vsc_only.busio import I2C as FakeI2C
+from tests.create import createRobot
 
 
 class TestRobot(unittest.TestCase):
@@ -22,7 +22,7 @@ class TestRobot(unittest.TestCase):
         platné objekty sensors a wheels.
         """
 
-        r = Robot(I2C(FakeI2C()))
+        r = createRobot(FakeI2C())
 
         self.assertIsNotNone(r.sensors)
         self.assertIsNotNone(r.wheels)
