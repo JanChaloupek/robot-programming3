@@ -1,6 +1,7 @@
 from board import P0
 from neopixel import NeoPixel
-from code import DirectionEnum, Timer, Period
+from utils import Timer, Period
+from joycar.direction import DirectionEnum
 from velocity import Velocity
 
 class BeamsEnum:
