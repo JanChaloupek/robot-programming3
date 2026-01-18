@@ -2,7 +2,7 @@
 picoed.py – společný stub pro VS Code a fake hardware pro testy.
 
 Tento modul napodobuje CircuitPython modul `picoed`, který poskytuje
-předpřipravené instance zařízení na desce pico:ed:
+předpřipravené instance zařízení na desce pico:ed.
 
 - i2c        – I2C sběrnice
 - display    – LED displej
@@ -18,6 +18,9 @@ V této fake verzi:
 - tlačítka mají simulovaný stav
 - LED má stav True/False
 - vše je deterministické a testovatelné
+
+Reálný modul `picoed` je součástí CircuitPythonu a není dostupný na PC.
+Tento soubor slouží pro výuku, vývoj a testování.
 """
 
 import board
@@ -25,11 +28,12 @@ from busio import I2C
 
 
 # ---------------------------------------------------------
-# I2C sběrnice (jediná implementace z busio.I2C)
+# I2C sběrnice (používá třídu z busio.I2C)
 # ---------------------------------------------------------
-
-i2c = I2C(board.I2C0_SCL, board.I2C0_SDA)
-
+# pro externí i2c (na veřejném konektoru)
+i2c = I2C(board.SCL, board.SDA)
+# pro interní i2c (pro displej)
+internal_i2c = I2C(board.I2C0_SCL, board.I2C0_SDA)
 
 # ---------------------------------------------------------
 # Fake Display
@@ -153,7 +157,7 @@ class Music:
 # Modulové instance (odpovídají reálnému pico:ed API)
 # ---------------------------------------------------------
 
-display = Display(i2c)
+display = Display(internal_i2c)
 button_a = Button()
 button_b = Button()
 led = Led()

@@ -1,5 +1,5 @@
 """
-adafruit_ticks.py – jednoduchý stub + fakeHW pro výuku a testování
+adafruit_ticks.py – společný stub pro VS Code a fake hardware pro testy.
 
 Tento modul napodobuje chování CircuitPython knihovny `adafruit_ticks`,
 která poskytuje monotónní časovač založený na milisekundách.
@@ -10,10 +10,13 @@ V reálném CircuitPythonu:
 - používá se pro časování, periodické úlohy, debounce tlačítek atd.
 
 V této verzi:
-- modul je **deterministický** (ticks_ms vrací hodnotu řízenou testy)
-- je vhodný pro **VS Code / Pylance** (autocomplete, typy)
-- je vhodný pro **unit testy** (žádný skutečný čas, žádné čekání)
+- modul je deterministický (ticks_ms vrací hodnotu řízenou testy)
+- je vhodný pro VS Code / Pylance (autocomplete, typy)
+- je vhodný pro unit testy (žádný skutečný čas, žádné čekání)
 - studenti mohou modul používat stejně jako na reálném zařízení
+
+Reálný modul `adafruit_ticks` je součástí CircuitPythonu a není dostupný na PC.
+Tento soubor slouží pro výuku, vývoj a testování.
 """
 
 # ---------------------------------------------------------
@@ -68,7 +71,7 @@ def ticks_add(ticks: int, delta: int) -> int:
 
 def ticks_diff(ticks1: int, ticks2: int) -> int:
     """
-    Vrátí podepsaný rozdíl dvou tick hodnot.
+    Vrátí rozdíl dvou tick hodnot.
 
     Výsledek je v rozsahu:
         -_TICKS_HALFPERIOD .. +_TICKS_HALFPERIOD

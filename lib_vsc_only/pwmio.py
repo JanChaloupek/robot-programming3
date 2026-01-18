@@ -12,7 +12,7 @@ V této verzi:
 - chová se deterministicky a ukládá historii změn
 
 Reálný modul `pwmio` je součástí CircuitPythonu a není dostupný na PC.
-Tento soubor slouží pouze pro výuku, vývoj a testování.
+Tento soubor slouží pro výuku, vývoj a testování.
 """
 
 

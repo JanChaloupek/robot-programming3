@@ -11,7 +11,7 @@ V této verzi:
 - chová se deterministicky a umožňuje testům kontrolovat komunikaci
 
 Reálný modul `busio` je součástí CircuitPythonu a není dostupný na PC.
-Tento soubor slouží pouze pro výuku, vývoj a testování.
+Tento soubor slouží pro výuku, vývoj a testování.
 """
 
 

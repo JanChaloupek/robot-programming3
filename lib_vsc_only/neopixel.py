@@ -12,7 +12,7 @@ V této verzi:
 - podporuje auto_write, brightness a pixel_order (symbolicky)
 
 Reálný modul `neopixel` je součástí CircuitPythonu a není dostupný na PC.
-Tento soubor slouží pouze pro výuku, vývoj a testování.
+Tento soubor slouží pro výuku, vývoj a testování.
 """
 
 import digitalio

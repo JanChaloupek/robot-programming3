@@ -12,7 +12,7 @@ V této verzi:
 - je plně kompatibilní s importy typu `import board`
 
 Reálný modul `board` je součástí CircuitPythonu a není dostupný na PC.
-Tento soubor slouží pouze pro výuku, vývoj a testování.
+Tento soubor slouží pro výuku, vývoj a testování.
 """
 
 

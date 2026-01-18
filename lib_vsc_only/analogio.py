@@ -11,7 +11,7 @@ V této verzi:
 - chová se deterministicky (hodnoty se nastavují ručně)
 
 Reálný modul `analogio` je součástí CircuitPythonu a není dostupný na PC.
-Tento soubor slouží pouze pro výuku, vývoj a testování.
+Tento soubor slouží pro výuku, vývoj a testování.
 """
 
 

@@ -11,7 +11,7 @@ Je navržen tak, aby:
 - testy byly rychlé, deterministické a bez čekání
 
 Reálný modul `time` používá systémové hodiny a blokující sleep().
-Tento fake modul je určený pouze pro výuku a testování na PC.
+Tento fake modul je určený pouze pro testování na PC.
 """
 
 import adafruit_ticks as ticks
