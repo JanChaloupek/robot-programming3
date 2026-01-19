@@ -1,4 +1,4 @@
-# 📘 WORKSHEET: Superloop + objektový návrh (studentská verze)
+# 📘 Superloop
 
 ## 🎯 Cíl
 - pochopíš superloop pomocí jednoduchých metafor  
@@ -7,6 +7,7 @@
 - uvidíš, jak robot zvládá více úloh najednou  
 - naučíš se objektový styl s metodou `update()`  
 - pochopíš, jak to souvisí s asyncio  
+- naučíš se používat objekt `Timer`  
 
 ---
 
@@ -113,25 +114,47 @@ Robot zvládá obě úlohy současně, protože nic neblokuje.
 
 ---
 
-# 🧩 6) Objektový superloop (doporučený styl)
+# 🧩 6) Objekt Timer
 
-Každá část robota má vlastní `update()`.
+`Timer` je malý objekt, který si pamatuje čas posledního spuštění a umí říct, jestli už vypršel interval.  
+Používá se místo `sleep()`, protože **neblokuje** robota.
 
-### Komponenta LED:
+## Implementace
+
+```python
+import time
+
+class Timer:
+    def __init__(self, interval):
+        self.interval = interval
+        self.last = time.monotonic()
+
+    def expired(self):
+        return time.monotonic() - self.last >= self.interval
+
+    def reset(self):
+        self.last = time.monotonic()
+```
+
+---
+
+# 🔌 7) Použití Timeru v komponentě
 
 ```python
 class HeartbeatLED:
     def __init__(self, led, interval):
         self.led = led
-        self.interval = interval
-        self.last = time.monotonic()
+        self.timer = Timer(interval)
 
     def update(self):
-        now = time.monotonic()
-        if now - self.last >= self.interval:
+        if self.timer.expired():
             self.led.toggle()
-            self.last = now
+            self.timer.reset()
 ```
+
+---
+
+# 🚗 8) Objektový superloop
 
 ### Robot skládá komponenty:
 
@@ -156,7 +179,7 @@ while True:
 
 ---
 
-# 🔌 7) Přirovnání k asyncio
+# 🔌 9) Přirovnání k asyncio
 
 Pokud znáš asyncio, superloop je vlastně totéž:
 
@@ -167,8 +190,8 @@ await asyncio.sleep(0.25)
 
 ### Superloop:
 ```python
-if now - last > 0.25:
-    last = now
+if timer.expired():
+    timer.reset()
 ```
 
 V asyncio úloha „pustí řízení“ pomocí `await`.  
@@ -178,16 +201,16 @@ V superloopu úloha „pustí řízení“ tím, že rychle skončí a vrátí s
 
 ---
 
-# 🧪 8) Cvičení
+# 🧪 10) Cvičení
 
 ### Úkol 1  
-Napiš komponentu `Blinker`, která bliká LED každých X sekund.
+Napiš komponentu `Blinker`, která bliká LED každých X sekund pomocí Timeru.
 
 ### Úkol 2  
-Napiš komponentu `SensorReader`, která čte senzory každých 0.05 s.
+Napiš komponentu `SensorReader`, která čte senzory každých 0.05 s pomocí Timeru.
 
 ### Úkol 3  
-Napiš komponentu `MotorController`, která aktualizuje motory každých 0.02 s.
+Napiš komponentu `MotorController`, která aktualizuje motory každých 0.02 s pomocí Timeru.
 
 ### Úkol 4  
 Přidej všechny komponenty do `Robot.update()`.
@@ -197,7 +220,7 @@ Zkus do superloopu dát `time.sleep(1)` a pozoruj, co se stane.
 
 ---
 
-# 🚀 9) Úkoly pro pokročilé
+# 🚀 11) Úkoly pro pokročilé
 
 ### Úkol A — Vytvoř vlastní plánovač úloh  
 Třída `Scheduler`, která spouští úlohy podle jejich intervalu.
@@ -219,11 +242,11 @@ Kolikrát za sekundu proběhne smyčka.
 
 ---
 
-# 🏁 10) Co si máš odnést
+# 🏁 12) Co si máš odnést
 
-- Superloop je základ robotiky.  
-- Robot rychle přepíná mezi úlohami.  
-- `sleep()` je zakázaný — blokuje celý robot.  
-- Časování se dělá přes `monotonic()`.  
-- Objektový styl s `update()` je nejpřehlednější.  
-- Superloop je jako asyncio, jen bez `await`.  
+- Superloop je základ robotiky  
+- Robot rychle přepíná mezi úlohami  
+- `sleep()` je zakázaný — blokuje celý robot  
+- Časování se dělá přes `Timer` nebo `monotonic()`  
+- Objektový styl s `update()` je nejpřehlednější  
+- Superloop je jako asyncio, jen bez `await`  
