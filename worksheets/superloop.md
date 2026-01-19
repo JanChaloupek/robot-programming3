@@ -222,22 +222,19 @@ Zkus do superloopu dát `time.sleep(1)` a pozoruj, co se stane.
 
 # 🚀 11) Úkoly pro pokročilé
 
-### Úkol A — Vytvoř vlastní plánovač úloh  
-Třída `Scheduler`, která spouští úlohy podle jejich intervalu.
-
-### Úkol B — Komponenta, která volá jiné komponenty  
+### Úkol A — Komponenta, která volá jiné komponenty  
 `LineFollower(sensors, motors)`.
 
-### Úkol C — Stavový automat  
+### Úkol B — Stavový automat  
 Stavy: `IDLE`, `FOLLOW_LINE`, `AVOID_OBSTACLE`.
 
-### Úkol D — Animace na displeji  
+### Úkol C — Animace na displeji  
 Každých 0.2 s další obrázek.
 
-### Úkol E — Watchdog  
+### Úkol D — Watchdog  
 Pokud se 1 s nevolá `kick()`, vypiš „EMERGENCY STOP“.
 
-### Úkol F — Měření FPS superloopu  
+### Úkol E — Měření FPS superloopu  
 Kolikrát za sekundu proběhne smyčka.
 
 ---
