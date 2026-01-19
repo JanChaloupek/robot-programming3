@@ -228,13 +228,10 @@ Zkus do superloopu dát `time.sleep(1)` a pozoruj, co se stane.
 ### Úkol B — Stavový automat  
 Stavy: `IDLE`, `FOLLOW_LINE`, `AVOID_OBSTACLE`.
 
-### Úkol C — Animace na displeji  
-Každých 0.2 s další obrázek.
-
-### Úkol D — Watchdog  
+### Úkol C — Watchdog  
 Pokud se 1 s nevolá `kick()`, vypiš „EMERGENCY STOP“.
 
-### Úkol E — Měření FPS superloopu  
+### Úkol D — Měření FPS superloopu  
 Kolikrát za sekundu proběhne smyčka.
 
 ---
