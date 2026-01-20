@@ -106,10 +106,6 @@ class MotorController:
 ## ✔ Úkol 4  
 **Přidej všechny komponenty do `Robot.update()`.**
 
-> Poznámka:  
-> V původní verzi byly chyby — komponenty dostávaly špatné argumenty.  
-> Tady je **opravená a funkční verze**.
-
 ```python
 class Robot:
     def __init__(self, i2c, neopixel_pin):
