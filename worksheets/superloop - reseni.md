@@ -110,7 +110,7 @@ class MotorController:
 class Robot:
     def __init__(self, i2c, neopixel_pin):
         # komponenty
-        self.heartbeat = HeartbeatLED(neopixel_pin, 0.25)
+        self.heartbeat = HeartbeatLED(led, 0.25)
         self.blinker = Blinker(neopixel_pin, 0.5)
         self.sensors = SensorReader(i2c)
         self.motors = MotorController()
