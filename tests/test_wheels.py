@@ -11,7 +11,7 @@ Pouze ověřuje, že konstruktor správně vytvoří obě kola.
 """
 
 import unittest
-from lib_vsc_only.busio import I2C as FakeI2C
+from _stubs.busio import I2C as FakeI2C
 from tests.create import createWheels
 
 class TestWheels(unittest.TestCase):

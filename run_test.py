@@ -4,7 +4,7 @@ run_test.py – spouštěč unit testů s fake hardwarem
 Tento skript umožňuje spouštět embedded kód na PC bez skutečného hardware.
 Zajišťuje:
 
-1) Přidání adresáře lib_vsc_only/ do sys.path
+1) Přidání adresáře _stubs/ do sys.path
    → VS Code i testy mohou importovat fake moduly (board, neopixel, busio, …)
 
 2) Přesměrování importů:
@@ -17,9 +17,9 @@ Zajišťuje:
       import picoed
       import adafruit_ticks
       import time
-   → na jejich fake verze v lib_vsc_only/
+   → na jejich fake verze v _stubs/
 
-3) Deterministické časování přes lib_vsc_only/time.py a lib_vsc_only/adafruit_ticks.py
+3) Deterministické časování přes _stubs/time.py a _stubs/adafruit_ticks.py
 
 4) Barevný výstup unittest výsledků
 
@@ -36,26 +36,25 @@ import importlib
 
 
 # ---------------------------------------------------------
-# 0) Přidat lib_vsc_only do sys.path
+# 0) Přidat _stubs do sys.path
 # ---------------------------------------------------------
 BASE_DIR = os.path.dirname(__file__)
-LIB_DIR = os.path.join(BASE_DIR, "lib_vsc_only")
-sys.path.insert(0, LIB_DIR)
-
+STUBS_DIR = os.path.join(BASE_DIR, "_stubs")
+sys.path.insert(0, STUBS_DIR)
 
 # ---------------------------------------------------------
-# Helper: načti fake modul z lib_vsc_only a zaregistruj ho
+# Helper: načti fake modul z _stubs a zaregistruj ho
 # ---------------------------------------------------------
 def load_fake(name: str):
     """
-    Načte modul lib_vsc_only.<name> a zaregistruje ho jako <name>.
+    Načte modul _stubs.<name> a zaregistruje ho jako <name>.
 
     Příklad:
-        load_fake("board") → sys.modules["board"] = lib_vsc_only.board
+        load_fake("board") → sys.modules["board"] = _stubs.board
 
     Tím se zajistí, že import board bude používat fake verzi.
     """
-    module = importlib.import_module(f"lib_vsc_only.{name}")
+    module = importlib.import_module(f"_stubs.{name}")
     sys.modules[name] = module
     return module
 

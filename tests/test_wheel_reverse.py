@@ -23,7 +23,7 @@ Reverzní sekvence:
 import unittest
 import adafruit_ticks as ticks
 from joycar import DirectionEnum
-from lib_vsc_only.busio import I2C as FakeI2C
+from _stubs.busio import I2C as FakeI2C
 from tests.create import createWheel
 
 class TestWheelReverse(unittest.TestCase):

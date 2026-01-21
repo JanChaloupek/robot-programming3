@@ -15,7 +15,7 @@ Používáme FakeWheel, který simuluje úspěch nebo selhání.
 """
 
 import unittest
-from lib_vsc_only.busio import I2C as FakeI2C
+from _stubs.busio import I2C as FakeI2C
 from tests.create import createWheels
 
 

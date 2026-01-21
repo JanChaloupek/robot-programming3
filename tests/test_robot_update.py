@@ -16,7 +16,7 @@ Používáme řízený čas pomocí adafruit_ticks:
 
 import unittest
 import adafruit_ticks as ticks
-from lib_vsc_only.busio import I2C as FakeI2C
+from _stubs.busio import I2C as FakeI2C
 from tests.create import createRobot
 
 class TestRobotUpdate(unittest.TestCase):
