@@ -1,6 +1,6 @@
 import unittest
 from joycar import PCF8574, I2C
-from _stubs.busio import I2C as FakeI2C
+from busio import I2C as FakeI2C
 
 class TestPCF8574Write(unittest.TestCase):
     """

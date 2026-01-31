@@ -1,0 +1,16 @@
+"""
+Stub rozhraní pro fake modul `time`.
+
+Obsahuje API kompatibilní s CircuitPython/MicroPython:
+- time()
+- sleep()
+- sleep_ms()
+- monotonic()
+- monotonic_ns()
+"""
+
+def time() -> float: ...
+def sleep(seconds: float) -> None: ...
+def sleep_ms(ms: int) -> None: ...
+def monotonic() -> float: ...
+def monotonic_ns() -> int: ...

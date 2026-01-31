@@ -16,12 +16,12 @@ Použití:
     robot.update()
 """
 
+from joycar.display import display
 from joycar.i2c import I2C
 from joycar.pcf8574 import PCF8574
 from joycar.pca9633 import PCA9633
 from joycar.sensors import Sensors
 from joycar.wheels import Wheels
-from joycar.display import Display
 
 class JoyCarRobot:
     """
@@ -51,7 +51,7 @@ class JoyCarRobot:
         """Periodická aktualizace robota (senzory + motory)."""
         self.sensors.update()
         self.wheels.update()
-        Display.updatePixels()        
+        display.updatePixels()        
 
     def stop(self) -> None:
         """Zastaví robota (oba motory)."""

@@ -1,0 +1,19 @@
+"""
+Stub rozhraní pro CircuitPython modul `pwmio`.
+
+Obsahuje třídu PWMOut s veřejným API pro VS Code a Pylance.
+"""
+
+class PWMOut:
+    def __init__(self, pin, *, frequency: int = 5000, duty_cycle: int = 0): ...
+    def deinit(self) -> None: ...
+
+    @property
+    def duty_cycle(self) -> int: ...
+    @duty_cycle.setter
+    def duty_cycle(self, value: int) -> None: ...
+
+    @property
+    def frequency(self) -> int: ...
+    @frequency.setter
+    def frequency(self, value: int) -> None: ...

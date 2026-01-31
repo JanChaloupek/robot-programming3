@@ -11,7 +11,7 @@ Neřešíme reverzní ochranu ani časování – pouze ověřujeme,
 
 import unittest
 from joycar import DirectionEnum
-from _stubs.busio import I2C as FakeI2C
+from busio import I2C as FakeI2C
 from tests.create import createWheel
 
 class TestWheelApplyPwm(unittest.TestCase):

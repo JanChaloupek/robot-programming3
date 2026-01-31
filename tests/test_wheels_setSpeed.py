@@ -20,7 +20,7 @@ Používáme dvě hranice:
 
 import unittest
 import adafruit_ticks as ticks
-from _stubs.busio import I2C as FakeI2C
+from busio import I2C as FakeI2C
 from tests.create import createWheels
 
 class TestWheelsSetSpeed(unittest.TestCase):

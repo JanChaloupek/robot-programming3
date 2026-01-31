@@ -1,101 +1,39 @@
-"""
-code.py – hlavní program pro robota JoyCar.
+from picoed import led
+from joycar.display import display
+from time import sleep, monotonic_ns
 
-Tento soubor:
-- vytvoří instanci JoyCarRobota,
-- řídí rychlosti motorů v čase,
-- používá vestavěné tlačítko A pro ukončení,
-- ovládá NeoPixel pásek a LEDku,
-- zapisuje logy s časovými značkami,
-- PRAVIDELNĚ volá Display.updatePixels(), aby se displej překresloval.
-"""
+led.deinit()
+led._init()
 
-from picoed import button_a, led, display, i2c as pico_i2c
-from neopixel import NeoPixel
-from board import P0
+led.toggle()
+display.iconA("A", flush=False)
+startA = monotonic_ns()
+display.iconB("B", flush=False)
+endA = monotonic_ns()
+print(f"Icon B drawing took {(endA - startA)/1000000} milliseconds")
+display.iconC("C", flush=False)
+startRedraw = monotonic_ns()
+display.redraw()
+endRedraw = monotonic_ns()
+print(f"Redraw took {(endRedraw - startRedraw)/1000000} milliseconds")
 
-from joycar import JoyCarRobot, I2C, Display
-from utils.period import Period
-from utils.log import log
+sleep(1)
+led.toggle()
 
+display.fill(1)
+sleep(0.5)
+led.toggle()
 
-from joycar.robot import JoyCarRobot
-from joycar.i2c import I2C
-from picoed import i2c as i2c_picoed
+startPixel = monotonic_ns()
+display.pixel(0,0,255)
+display.pixel(16,6,255)
+startRedraw = monotonic_ns()
+display.redraw()
+endRedraw = monotonic_ns()
 
+print(f"Pixel drawing took {(endRedraw - startPixel)/1000000} milliseconds")
+print(f"Redraw took {(endRedraw - startRedraw)/1000000} milliseconds")
+led.toggle()
 
-def createJoyCarRobot():
-    """Vytvoří a vrátí instanci JoyCarRobota."""
-    
-    # fyzikální parametry robota
-    WHEEL_DIAMETER = 0.067
-    ROBOT_DIAMETER = 0.15
+display.fill(0)
 
-    # vytvoření I2C wrapperu z JoyCar knihovny (automaticky zamyká a odemká i2c z picoed)
-    i2c = I2C(i2c_picoed)
-
-    # vytvoření robota
-    return JoyCarRobot(
-        i2c=i2c,
-        wheelDiameter=WHEEL_DIAMETER,
-        wheelBase=ROBOT_DIAMETER
-    )
-
-
-
-if __name__ == "__main__":
-    light = NeoPixel(P0, 8)
-    joyCar = None
-
-    try:
-        log.info("Program started.")
-
-        nextSpeed = Period(timeout_ms=3000)
-        speeds = [
-            [150, 150],
-            [-150, 100],
-            [-100, -150],
-            [100, 100],
-        ]
-        x = 0
-
-        joyCar = createJoyCarRobot()
-
-        while not button_a.is_pressed():
-            if nextSpeed.isTime():
-                log.flush(max_line=50)
-                led.toggle()
-                x += 20
-                light.fill((x, 0, 0))
-
-                if not speeds:
-                    log.info("Last speed reached.")
-                    break
-
-                log.info("Next speed.")
-                joyCar.wheels.ridePwm(speeds.pop(0))
-
-            joyCar.update()
-            Display.updatePixels()   # zajistí překreslování displeje
-
-        log.info("Stopping robot...")
-        joyCar.stop()
-
-    except Exception as e:
-        log.exception(e)
-        if joyCar is not None:
-            joyCar.emergencyShutdown()
-        raise e
-
-    finally:
-        log.info("Program ended.")
-        log.flush()
-
-        print("Press button A to exit...")
-        while not button_a.is_pressed():
-            if joyCar is not None:
-                joyCar.update()
-
-        led.off()
-        light.fill((0, 0, 0))
-        display.clear()

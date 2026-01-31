@@ -10,14 +10,14 @@ POZOR:
     Display.senzors() pouze zapisuje do bufferu displeje.
     Aby se změny skutečně zobrazily, je nutné pravidelně volat:
 
-        Display.updatePixels()
+        display.updatePixels()
 
     typicky v hlavní smyčce robota.
 """
 
 from joycar.pcf8574 import PCF8574
 from utils.period import Period
-from joycar.display import Display
+from joycar.display import display
 
 
 class Sensors:
@@ -64,9 +64,9 @@ class Sensors:
         Předá stav senzorů metodě Display.senzors().
 
         Display.senzors() pouze zapisuje do bufferu.
-        Pro skutečné vykreslení je nutné volat Display.updatePixels().
+        Pro skutečné vykreslení je nutné volat display.updatePixels().
         """
-        Display.senzors(
+        display.sensors(
             obstacleLeft   = self.areActive(Sensors.ObstacleLeft),
             farLeft        = None,
             left           = self.areActive(Sensors.LineLeft),
@@ -101,8 +101,8 @@ class Sensors:
         Periodicky aktualizuje stav senzorů.
 
         POZOR:
-            Display.senzors() pouze zapisuje do bufferu.
-            Překreslení provádí Display.updatePixels().
+            display.sensors() pouze zapisuje do bufferu.
+            Překreslení provádí display.updatePixels().
         """
         if self._periodRead.isTime():
             self.updateSensorData()

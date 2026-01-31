@@ -10,7 +10,7 @@ zda jeho update() bylo zavoláno.
 """
 
 import unittest
-from _stubs.busio import I2C as FakeI2C
+from busio import I2C as FakeI2C
 from tests.create import createWheels
 
 

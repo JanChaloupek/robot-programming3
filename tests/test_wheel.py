@@ -11,7 +11,7 @@ s PWM přímo, ale nejprve ho normalizuje do bezpečného rozsahu.
 
 import unittest
 from joycar import DirectionEnum
-from _stubs.busio import I2C as FakeI2C
+from busio import I2C as FakeI2C
 from tests.create import createWheel
 
 class TestWheel(unittest.TestCase):

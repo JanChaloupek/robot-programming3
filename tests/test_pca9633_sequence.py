@@ -1,6 +1,6 @@
 import unittest
 from joycar import PCA9633, I2C
-from _stubs.busio import I2C as FakeI2C
+from busio import I2C as FakeI2C
 
 
 class TestPCA9633Sequence(unittest.TestCase):

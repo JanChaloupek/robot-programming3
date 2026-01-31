@@ -15,7 +15,7 @@ nikdy nepoužívá PWM přímo, ale vždy ho nejprve normalizuje.
 
 import unittest
 from joycar.wheel import DirectionEnum
-from _stubs.busio import I2C as FakeI2C
+from busio import I2C as FakeI2C
 from tests.create import createWheel
 class TestWheelSanitize(unittest.TestCase):
     """Testy normalizace PWM pomocí _sanitizePwm()."""
