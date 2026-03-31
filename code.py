@@ -1,39 +1,50 @@
-from picoed import led
-from joycar.display import display
+from joycar import display
 from time import sleep, monotonic_ns
 
-led.deinit()
-led._init()
+# robotLocalizeX = 5
+# robotLocalizeY = 3
+# separator = ":"
+# text = str(robotLocalizeX) + separator + str(robotLocalizeY)
+# start = monotonic_ns()
+# display.scroll(text, brightness=8)
+# end = monotonic_ns()
+# print(f"scroll time: {(end - start) / 1_000_000:.2f} ms")
 
-led.toggle()
-display.iconA("A", flush=False)
-startA = monotonic_ns()
-display.iconB("B", flush=False)
-endA = monotonic_ns()
-print(f"Icon B drawing took {(endA - startA)/1000000} milliseconds")
-display.iconC("C", flush=False)
-startRedraw = monotonic_ns()
-display.redraw()
-endRedraw = monotonic_ns()
-print(f"Redraw took {(endRedraw - startRedraw)/1000000} milliseconds")
+display.set_brightness(32)
 
-sleep(1)
-led.toggle()
+print("Displaying position (8, 3)")
+start = monotonic_ns()
+display.position(8, 3)
+end = monotonic_ns()
+print(f"Time taken: {(end - start) / 1_000_000:.2f} ms")
 
-display.fill(1)
-sleep(0.5)
-led.toggle()
+print(f"Displaying character 'TL' in iconB")
+start = monotonic_ns()
+display.drive_mode("TL")
+end = monotonic_ns()
+print(f"Time taken: {(end - start) / 1_000_000:.2f} ms")
 
-startPixel = monotonic_ns()
-display.pixel(0,0,255)
-display.pixel(16,6,255)
-startRedraw = monotonic_ns()
-display.redraw()
-endRedraw = monotonic_ns()
+sleep(1.0)
 
-print(f"Pixel drawing took {(endRedraw - startPixel)/1000000} milliseconds")
-print(f"Redraw took {(endRedraw - startRedraw)/1000000} milliseconds")
-led.toggle()
+print(f"Displaying number (123)")
+start = monotonic_ns()
+display.number(123)
+end = monotonic_ns()
+print(f"Time taken: {(end - start) / 1_000_000:.2f} ms")
 
-display.fill(0)
+sleep(1.0)
 
+start = monotonic_ns()
+display._bitmap(12, 0, 5, display._PICTOGRAMS["5"], 32)
+end = monotonic_ns()
+print(f"_bitmap time: {(end-start)/1_000_000}")
+
+start = monotonic_ns()
+display.iconA("5", flush=False)
+end = monotonic_ns()
+print(f"iconA time: {(end-start)/1_000_000}")
+
+start = monotonic_ns()
+display.flush()
+end = monotonic_ns()
+print(f"flush time: {(end-start)/1_000_000}")

@@ -1,0 +1,13 @@
+{
+  "include": ["."],
+  "stubPath": "_stubs",
+  "extraPaths": ["./lib", "./_stubs"],
+  "typoooooo": true,
+  "executionEnvironments": [
+    {
+      "root": ".",
+      "extraPaths": ["./lib", "./_stubs"],
+      "stubPath": "_stubs"
+    }
+  ]
+}
