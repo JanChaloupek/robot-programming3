@@ -1,24 +1,32 @@
 """
-period.py – periodický časovač pro JoyCar.
+period.py – periodický časovač.
 
-Použití:
-    from utils.period import Period
-
-    p = Period(timeout_ms=500)
-    if p.isTime():
-        ...
+Period funguje jako Timer, ale po timeoutu se automaticky restartuje.
+Vhodné pro libovolné projekty v CircuitPythonu.
 """
 
-from utils.timer import Timer
+from utils import Timer
 
 
 class Period(Timer):
-    """Periodický časovač – po timeoutu se automaticky restartuje."""
+    """
+    Periodický časovač – po timeoutu se automaticky restartuje.
 
-    def isTime(self, test_time_ms: int = None, timeout_ms: int = None) -> bool:
-        """Vrátí True, pokud nastal čas události, a restartuje časovač."""
-        time_ms = self._getTime(test_time_ms)
-        ret = self.isTimeout(time_ms, timeout_ms)
-        if ret:
-            self.startTimer(time_ms)
-        return ret
+    Chování:
+        - ready() vrací True pokud timeout vypršel a zároveň restartuje časovač.
+        - is_timeout(...) zůstává čistým testem bez efektů (zděděno z Timer).
+    """
+
+    def ready(self) -> bool:
+        """
+        Vrátí True, pokud nastal čas události, a restartuje časovač.
+
+        Použití:
+            p = Period(timeout_ms=500)
+            if p.ready():
+                # vykonej periodickou akci
+        """
+        if self.is_timeout():
+            self.restart()
+            return True
+        return False

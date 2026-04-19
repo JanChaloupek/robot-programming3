@@ -1,11 +1,13 @@
 """
 log.py – jednoduchý logovací systém s časovými značkami.
 
-Použití:
-    from utils.log import log, LogLevelEnum
+Poskytuje:
+- různé úrovně logování (ERROR, WARNING, INFO, DEBUG),
+- ukládání logů do paměti,
+- tisk logů s časovými značkami,
+- možnost filtrování podle úrovně.
 
-    log.info("Start programu")
-    log.debug("Detailní zpráva")
+Vhodné pro libovolné projekty v CircuitPythonu.
 """
 
 from adafruit_ticks import ticks_ms
@@ -13,13 +15,15 @@ from adafruit_ticks import ticks_ms
 
 class LogLevel:
     """Reprezentuje jednu úroveň logování."""
-    def __init__(self, name: str, value: int) -> None:
+
+    def __init__(self, name, value):
         self.name = name
         self.value = value
 
 
 class LogLevelEnum:
     """Enum-like kolekce úrovní logování."""
+
     ERROR = LogLevel("ERROR", 1)
     WARNING = LogLevel("WARNING", 2)
     INFO = LogLevel("INFO", 3)
@@ -30,51 +34,55 @@ class Log:
     """
     Jednoduchý logovací systém s časovými značkami.
 
-    Atributy:
-        level (LogLevel): Minimální úroveň logování.
-        _initTime (int): Čas inicializace loggeru v ms.
+    Logy se ukládají do interního bufferu a lze je kdykoliv vytisknout
+    pomocí metody flush().
     """
 
-    def __init__(self, level: LogLevel = LogLevelEnum.INFO) -> None:
-        self._initTime: int = ticks_ms()
-        self._level: LogLevel = level
+    def __init__(self, level=LogLevelEnum.INFO):
+        self._initTime = ticks_ms()
+        self._level = level
         self._entries = []
 
-    def _log(self, level: LogLevel, text: str) -> None:
-        """Interní metoda pro zápis logu."""
+    def _log(self, level, text):
+        """Zapíše log do bufferu, pokud úroveň odpovídá nastavení."""
         if self._level.value >= level.value:
-            difTime_ms = ticks_ms() - self._initTime
-            self._entries.append((difTime_ms, level.name, text))
+            dif = ticks_ms() - self._initTime
+            self._entries.append((dif, level.name, text))
 
-    def flush(self, max_line: int = None) -> None:
-        """Vytiskne logy a smaže je."""
+    def flush(self, max_line=None):
+        """
+        Vytiskne logy a smaže je.
+
+        Args:
+            max_line (int|None): Maximální počet vypsaných řádků.
+        """
         count = 0
         while self._entries:
-            difTime_ms, level_name, text = self._entries.pop(0)
-            print(f"[{difTime_ms:6d} ms|{level_name:7}] {text}")
+            dif, name, text = self._entries.pop(0)
+            print(f"[{dif:6d} ms|{name:7}] {text}")
             count += 1
             if max_line is not None and count >= max_line:
                 break
 
-    def debug(self, text: str) -> None:
+    def debug(self, text):
         """Zapíše ladicí zprávu."""
         self._log(LogLevelEnum.DEBUG, text)
 
-    def info(self, text: str) -> None:
+    def info(self, text):
         """Zapíše informativní zprávu."""
         self._log(LogLevelEnum.INFO, text)
 
-    def warning(self, text: str) -> None:
+    def warning(self, text):
         """Zapíše varování."""
         self._log(LogLevelEnum.WARNING, text)
 
-    def error(self, text: str) -> None:
+    def error(self, text):
         """Zapíše chybovou zprávu."""
         self._log(LogLevelEnum.ERROR, text)
 
-    def exception(self, e: BaseException) -> None:
+    def exception(self, e):
         """Zapíše výjimku jako chybu."""
-        self.error(f"Exception: {str(e)}")
+        self.error("Exception: " + str(e))
 
 
 log = Log(level=LogLevelEnum.DEBUG)

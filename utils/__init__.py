@@ -1,5 +1,5 @@
 """
-utils – pomocné moduly pro JoyCar.
+utils – pomocné moduly.
 
 Obsahuje:
 - logování,
@@ -10,3 +10,5 @@ Obsahuje:
 from .log import log, LogLevelEnum
 from .timer import Timer
 from .period import Period
+
+__all__ = ["log", "LogLevelEnum", "Timer", "Period"]
