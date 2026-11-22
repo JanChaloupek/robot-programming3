@@ -1,234 +1,170 @@
 """
-code.py – CuteBotPro line follower s okamžitým zastavením pod stínítkem.
+code.py – Hlavní výukový řídicí program robota JoyCar s Pico:ed.
 
-Tato verze:
-- NEPOUŽÍVÁ log.flush() nikde mimo hlavní smyčku
-- všechny události nastavují need_flush = True
-- flush probíhá JEN v hlavní smyčce (status_period nebo need_flush)
-- okamžitý STOP při poklesu světla
-- reverz pro snížení dojezdu
-- blikání spodních LED přes Period (neblokující)
-- obnovení jízdy až po stabilním rozjasnění (hysteréza + debounce)
+===============================================================================
+VZOROVÝ VÝUKOVÝ PROJEKT PRO STUDENTY
+Předmět: Základy stavby a programování robotů
+Platforma: Elecfreaks JoyCar s deskou Pico:ed v2 (CircuitPython)
+===============================================================================
+
+Architektura programu (Model Superloop):
+----------------------------------------
+Tento program je postaven podle vzoru „Superloop s kooperativním multitaskingem“.
+V robotice NESMÍME používat blokující čekání typu `time.sleep()`.
+
+Představte si robota jako orchestr:
+- `JoyCarRobot` (robot) sdružuje jednotlivé hudebníky (motory, senzory, světla, bzučák, displej).
+- `CPU` (plánovač) a stavové automaty jsou dirigent, který udává takt a rozhoduje o strategii.
+- Hlavní smyčka `while True:` představuje neustálý běh času. V každém taktu:
+    1. `CPU.tick()`   -> zkontroluje stav a vyhodnotí další krok mise (např. odbočit vlevo).
+    2. `robot.update()` -> přečte senzory, nastaví PWM na motory, aktualizuje blinkry a tóny bzučáku.
+
+Podrobné výukové materiály pro studenty:
+----------------------------------------
+- Proč nepoužívat sleep: file:///C:/Projekty/pomucky/superloop.md
+- Přesné časování tiku:  file:///C:/Projekty/pomucky/compare_tick_function.md
+- Blokování v Pythonu:   file:///C:/Projekty/pomucky/sleep.md
+
+Jak program funguje:
+--------------------
+1. Inicializuje hardware robota (`createJoyCarRobot()`).
+2. Zkontroluje a zobrazí napětí baterie na maticovém displeji Pico:ed.
+3. Zahraje uvítací melodii `hello` zcela na pozadí (neblokující HornController).
+4. Sestaví navigační trasu křižovatek (objekt `Commands`) a spustí stavový automat `CrossRoadsSM`.
+5. Běží v neblokující smyčce, dokud student nestiskne tlačítko A (`button_a`).
+6. Při stisku tlačítka A robot bezpečně zastaví.
+7. V případě neočekávané výjimky bezpečně vypne všechny motory a subsystémy (`emergencyShutdown()`).
+
+Úkoly a experimenty pro studenty:
+---------------------------------
+1. Změňte plán trasy v proměnné `route`:
+   Vyzkoušejte např. projet trasu se střídavým odbočováním:
+   `route = Commands([DirectionEnum.LEFT, DirectionEnum.RIGHT, DirectionEnum.FORWARD])`
+2. Zkuste jednoduché sledování čáry bez křižovatek:
+   Zakomentujte `CPU.add(...)` a do smyčky vložte:
+   `robot.rideLine(baseSpeed=0.2, turnGain=0.4)`
 """
 
 import time
 import board
-import analogio
-import neopixel
+from picoed import button_a, i2c as pico_i2c
 
-from cutebot_pro import CuteBotPro
-from utils import Timer, Period, log, LogLevelEnum
+from joycar import (
+    createJoyCarRobot,
+    DirectionEnum,
+    Commands,
+    CrossRoadsSM,
+    CPU,
+    Display,
+    display,
+    hello,
+    tutu,
+    panic,
+    log,
+    LogLevelEnum,
+)
+from joycar.battery import battery_voltage
+from utils.period import Period
 
-# -----------------------------
-# Nastavení logování
-# -----------------------------
-log._level = LogLevelEnum.DEBUG   # chceme vidět vše
 
-# -----------------------------
-# Inicializace hardware
-# -----------------------------
-bot = CuteBotPro()
-ldr = analogio.AnalogIn(board.P2)
-under = neopixel.NeoPixel(board.P15, 2, brightness=1.0, auto_write=True)
-
-# -----------------------------
-# Konfigurace
-# -----------------------------
-LIGHT_THRESHOLD = 15000
-RESUME_HYSTERESIS = 2000
-RESUME_DEBOUNCE_MS = 300
-
-BRAKE_REVERSE_SPEED = -40
-BRAKE_REVERSE_MS = 150
-
-LINE_PERIOD_MS = 40
-BLINK_INTERVAL_S = 0.3
-STATUS_PERIOD_MS = 1000
-
-ORANGE = (255, 80, 0)
-
-# -----------------------------
-# Timery a periody
-# -----------------------------
-line_period = Period(timeout_ms=LINE_PERIOD_MS)
-blink_period = Period(timeout_ms=int(BLINK_INTERVAL_S * 1000))
-status_period = Period(timeout_ms=STATUS_PERIOD_MS)
-
-brake_timer = Timer(timeout_ms=None, startTimer=False)
-resume_timer = Timer(timeout_ms=None, startTimer=False)
-
-# -----------------------------
-# Stavové proměnné
-# -----------------------------
-stopped_under_shade = False
-blink_state = False
-need_flush = False   # <--- CENTRALIZOVANÝ MECHANISMUS
-
-# -----------------------------
-# Pomocné funkce
-# -----------------------------
-def read_light():
-    return ldr.value
-
-def hazard_off():
-    under.fill((0, 0, 0))
-
-def toggle_blink():
-    global blink_state
-    blink_state = not blink_state
-    color = ORANGE if blink_state else (0, 0, 0)
-    under[0] = color
-    under[1] = color
-
-def set_motors(left, right):
-    """Nastaví motory a zapíše do logu (bez flush)."""
-    global need_flush
-    left_i = int(left); right_i = int(right)
-    log.info(f"Motors -> L:{left_i} R:{right_i}")
-    need_flush = True
+def main():
+    """Hlavní vstupní funkce robota JoyCar."""
+    robot = None
 
     try:
-        bot.motor_control(2, left_i, right_i)
-    except Exception:
-        try:
-            bot.set_motors(left_i, right_i)
-        except Exception:
-            print("SET MOTORS", left_i, right_i)
+        log.info("=== JoyCar Robot Start ===")
 
-def immediate_stop_and_brake(light_val):
-    """Okamžitý reverz + zapnutí blinků."""
-    global need_flush
-    log.info(f"Shade detected (LDR={light_val}) -> immediate brake")
-    need_flush = True
+        # Periodický časovač pro neblokující výpis logů
+        log_flush_period = Period(timeout_ms=500)
 
-    # reverz
-    try:
-        bot.motor_control(2, BRAKE_REVERSE_SPEED, BRAKE_REVERSE_SPEED)
-    except Exception:
-        try:
-            bot.set_motors(BRAKE_REVERSE_SPEED, BRAKE_REVERSE_SPEED)
-        except Exception:
-            pass
-
-    brake_timer.startTimer(timeout_ms=BRAKE_REVERSE_MS)
-
-    # okamžitě rozsvítit blinkry
-    under.fill(ORANGE)
-    blink_period.startTimer()
-
-def finalize_brake():
-    """Po reverzu pevné zastavení."""
-    global need_flush
-    try:
-        bot.motor_control(2, 0, 0)
-    except Exception:
-        try:
-            bot.set_motors(0, 0)
-        except Exception:
-            pass
-
-    log.info("Brake finished -> hard stop")
-    need_flush = True
-    brake_timer.stopTimer()
-
-# -----------------------------
-# Start
-# -----------------------------
-log.info("Line follower start (s ochranou proti stínu)")
-need_flush = True
-
-# -----------------------------
-# Hlavní smyčka
-# -----------------------------
-while True:
-    light = read_light()
-
-    # -----------------------------
-    # 1) Okamžitý STOP při poklesu světla
-    # -----------------------------
-    if light < LIGHT_THRESHOLD:
-
-        if not stopped_under_shade:
-            immediate_stop_and_brake(light)
-            stopped_under_shade = True
-            if resume_timer.isStarted():
-                resume_timer.stopTimer()
+        # ---------------------------------------------------------------------
+        # 1. Diagnostika baterie a displeje
+        # ---------------------------------------------------------------------
+        voltage = battery_voltage()
+        if voltage is not None:
+            log.info(f"Napětí baterie: {voltage:.2f} V")
+            # Zobrazíme napětí vynásobené 10 (např. 4.8 V se zobrazí jako 48)
+            display.number(int(voltage * 10))
+            time.sleep(1.0)
         else:
-            if blink_period.ready():
-                toggle_blink()
+            log.info("Napětí baterie nelze změřit (běh na USB nebo simulátor)")
+            display.drive_mode('s')
+            time.sleep(0.5)
 
-        if brake_timer.isStarted() and brake_timer.ready():
-            finalize_brake()
+        # ---------------------------------------------------------------------
+        # 2. Inicializace robota
+        # ---------------------------------------------------------------------
+        # createJoyCarRobot() vytvoří robota se všemi subsystémy:
+        # - robot.wheels   : řízení dvou DC motorů přes PCA9633
+        # - robot.sensors  : čtení 3 IR senzorů čáry a 2 překážkových přes PCF8574
+        # - robot.lights   : 8 NeoPixel LED (potkávací světla, blinkry, brzdová)
+        # - robot.horn     : neblokující bzučák
+        robot = createJoyCarRobot()
 
-        # flush v hlavní smyčce
-        if status_period.ready() or need_flush:
-            log.info(f"STATUS (under shade) LDR={light}")
-            log.flush(10)
-            need_flush = False
+        # Zvukové uvítání studenta
+        robot.playHonk(hello)
 
-        time.sleep(0.02)
-        continue
+        # ---------------------------------------------------------------------
+        # 3. Nastavení navigačního plánu trasy
+        # ---------------------------------------------------------------------
+        # Zde student zadává sekvenci odbočení na křižovatkách:
+        # DirectionEnum.LEFT     = odbočit vlevo
+        # DirectionEnum.RIGHT    = odbočit vpravo
+        # DirectionEnum.FORWARD  = pokračovat rovně
+        #
+        # Příklad: čtvercový okruh se 4 odbočeními vlevo:
+        route = Commands([
+            DirectionEnum.LEFT,
+            DirectionEnum.LEFT,
+            DirectionEnum.LEFT,
+            DirectionEnum.LEFT,
+        ])
 
-    # -----------------------------
-    # 2) Obnovení jízdy po rozjasnění
-    # -----------------------------
-    if stopped_under_shade:
+        # Vytvoření stavového automatu pro autonomní navigaci křižovatkami
+        sm = CrossRoadsSM(robot, commands=route)
+        CPU.clear()
+        CPU.add(sm)
 
-        if light >= LIGHT_THRESHOLD + RESUME_HYSTERESIS:
-            if not resume_timer.isStarted():
-                resume_timer.startTimer(timeout_ms=RESUME_DEBOUNCE_MS)
-            else:
-                if resume_timer.ready():
-                    stopped_under_shade = False
-                    resume_timer.stopTimer()
-                    blink_period.stopTimer()
-                    hazard_off()
+        log.info("Robot připraven. Spouštím Superloop smyčku (pro zastavení stiskněte tlačítko A)...")
+        log.flush()
 
-                    log.info(f"Ambient restored (LDR={light}) -> resume driving")
-                    need_flush = True
-        else:
-            if resume_timer.isStarted():
-                resume_timer.stopTimer()
+        # ---------------------------------------------------------------------
+        # 4. Hlavní Superloop smyčka
+        # ---------------------------------------------------------------------
+        while not button_a.was_pressed():
+            # 1. Krok rozhodovací logiky stavového automatu
+            CPU.tick()
 
-        if blink_period.ready():
-            toggle_blink()
+            # 2. Krok hardwarových periferií (senzory, motory, světla, zvuk, displej)
+            robot.update()
 
-        if status_period.ready() or need_flush:
-            log.info(f"STATUS (waiting resume) LDR={light}")
-            log.flush(10)
-            need_flush = False
+            # 3. Dávkový výpis zpráv z paměťového bufferu (udržuje superloop plynulý)
+            if log_flush_period.ready():
+                log.flush(max_line=5)
 
-        time.sleep(0.02)
-        continue
+            # Pokud stavový automat dokončil celou trasu, ukončíme jízdu
+            if not CPU.existSM():
+                log.info("Trasa byla úspěšně dokončena!")
+                break
 
-    # -----------------------------
-    # 3) Světlo OK → sledování čáry
-    # -----------------------------
-    hazard_off()
-    if blink_period.isStarted():
-        blink_period.stopTimer()
-        blink_state = False
+        # ---------------------------------------------------------------------
+        # 5. Bezpečné zastavení po dojezdu nebo stisku tlačítka A
+        # ---------------------------------------------------------------------
+        log.info("Zastavuji robota...")
+        robot.stop()
+        display.drive_mode('s')
+        robot.playHonk(tutu)
+        log.flush()
 
-    if line_period.ready():
-        bot.trackbit_state_value()
-        state = bot._four_way_state_value
+    except Exception as e:
+        # Bezpečnostní pojistka: při jakékoliv chybě okamžitě nouzově vypneme vše
+        log.error(f"POZOR: Došlo k chybě: {e}")
+        log.flush()
+        if robot is not None:
+            robot.emergencyShutdown()
+        display.drive_mode('x')
+        raise e
 
-        if state == 0b0110:
-            set_motors(40, 40)
-        elif state in (0b1100, 0b1000):
-            set_motors(20, 40)
-        elif state in (0b0011, 0b0001):
-            set_motors(40, 20)
-        else:
-            set_motors(0, 0)
 
-    # -----------------------------
-    # 4) CENTRALIZOVANÝ FLUSH
-    # -----------------------------
-    if status_period.ready() or need_flush:
-        last_state = getattr(bot, "_four_way_state_value", None)
-        log.info(f"STATUS LDR={light} stopped={stopped_under_shade} state={last_state}")
-        log.flush(10)
-        need_flush = False
-
-    time.sleep(0.02)
+if __name__ == "__main__":
+    main()

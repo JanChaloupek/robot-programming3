@@ -265,6 +265,10 @@ class Display:
     def redraw(self):
         self.flush()
 
+    def updatePixels(self):
+        """Alias pro flush() pro kompatibilitu se starším rozhraním robota."""
+        self.flush()
+
     def sensors(self, 
                 obstacleLeft, farLeft, left,
                 midleLeft, midle35, midleRight,

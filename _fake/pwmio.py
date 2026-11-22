@@ -33,7 +33,7 @@ class PWMOut:
         history     – seznam všech změn (frequency, duty_cycle)
     """
 
-    def __init__(self, pin, *, frequency=5000, duty_cycle=0):
+    def __init__(self, pin, *, frequency=5000, duty_cycle=0, variable_frequency=False, **kwargs):
         """
         Inicializuje fake PWM výstup.
 
@@ -41,10 +41,10 @@ class PWMOut:
             pin         – libovolný objekt reprezentující pin
             frequency   – počáteční frekvence PWM
             duty_cycle  – počáteční šířka pulzu
-
-        Počáteční stav se uloží do history.
+            variable_frequency – zda je povolena dynamická změna frekvence (kompatibilita s CircuitPython)
         """
         self.pin = pin
+        self.variable_frequency = variable_frequency
         self._frequency = frequency
         self._duty_cycle = duty_cycle
 

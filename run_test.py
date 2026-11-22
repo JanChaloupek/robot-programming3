@@ -11,11 +11,14 @@ import argparse
 # ---------------------------------------------------------
 # 0) Přidat _stubs do sys.path (bez duplicit)
 # ---------------------------------------------------------
-BASE_DIR = os.path.dirname(__file__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STUBS_DIR = os.path.join(BASE_DIR, "_stubs")
 
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
 if STUBS_DIR not in sys.path:
-    sys.path.insert(0, STUBS_DIR)
+    sys.path.append(STUBS_DIR)
 
 
 # ---------------------------------------------------------

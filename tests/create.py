@@ -13,8 +13,8 @@ def createWheels(hw_i2c) -> Wheels:
 def createWheel(hw_i2c, side) -> Wheel:
     return Wheel(side, PCA9633(I2C(hw_i2c)), diameter=0.06)
 
-def createSensors(hw_i2c):
-    return Sensors(PCF8574(I2C(hw_i2c)))
+def createSensors(hw_i2c, *args, **kwargs):
+    return Sensors(PCF8574(I2C(hw_i2c)), *args, **kwargs)
 
 def createRobot(hw_i2c):
     from joycar.robot import JoyCarRobot

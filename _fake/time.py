@@ -21,6 +21,10 @@ def time() -> float:
     """Deterministická verze time() pro studentský kód."""
     return ticks.ticks_ms() / 1000.0
 
+def time_ns() -> int:
+    """Deterministická verze time_ns()."""
+    return ticks.ticks_ms() * 1_000_000
+
 def sleep(seconds: float) -> None:
     """Neblokující sleep pro studentský kód."""
     ticks.advance_ticks(int(seconds * 1000))
