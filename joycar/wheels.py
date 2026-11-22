@@ -1,58 +1,73 @@
 """
-wheels.py – řízení obou motorů JoyCar robota.
+wheels.py – Řízení obou motorů JoyCar robota.
 
 Tento modul poskytuje třídu Wheels, která:
-- obsahuje dva motory (levý + pravý),
-- inicializuje PCA9633,
-- umožňuje řízení obou motorů současně,
-- podporuje diferenciální kinematiku (v, omega).
+- obsahuje dvojici motorů (levý + pravý),
+- inicializuje driver motorů (PCA9633 pro 0–255 nebo PCA9685 pro 0–4095),
+- umožňuje současné řízení obou motorů,
+- podporuje diferenciální kinematiku podvozku robota (dopředná rychlost v, úhlová rychlost omega).
 """
 
-from joycar import wheel
+from typing import Optional, Any
 from joycar.wheel import Wheel
 from joycar.direction import DirectionEnum
-from joycar.pca9633 import PCA9633, PCA9633_registers
+from joycar.pca9633 import PCA9633_registers
+from joycar.calibration import CalibrateFactors
 from utils.log import log
 
 
 class Wheels:
-    """Řídí dvojici motorů (levý + pravý)."""
+    """Řídí dvojici motorů (levý + pravý podvozek)."""
 
-    def __init__(self, pca9633: PCA9633, diameter: float, wheelBase: float) -> None:
+    def __init__(self,
+                 driver: Any,
+                 diameter: float = 0.065,
+                 wheelBase: float = 0.14,
+                 calibration: Optional[CalibrateFactors] = None) -> None:
         """
         Inicializuje dvojici kol a parametry podvozku.
 
         Args:
-            pca9633 (PCA9633): driver motorů
-            diameter (float): průměr kol v metrech
-            wheelBase (float): vzdálenost mezi koly v metrech
+            driver (Any): Budič motorů (PCA9633 nebo PCA9685).
+            diameter (float): Průměr kol v metrech (výchozí 0.065 m = 65 mm).
+            wheelBase (float): Rozvor (vzdálenost mezi koly) v metrech (výchozí 0.14 m = 140 mm).
+            calibration (Optional[CalibrateFactors]): Kalibrační hodnoty motorů.
         """
-        self._pca9633 = pca9633
-
-        # uložíme polovinu vzdálenosti mezi koly (pro diferenciální kinematiku)
+        self._driver = driver
+        self._pca9633 = driver  # Zachování zpětné kompatibility atributu
         self._halfWheelBase = wheelBase / 2
+        self._calibration = calibration
 
         self._wheels = {
-            DirectionEnum.LEFT: Wheel(DirectionEnum.LEFT, pca9633, diameter),
-            DirectionEnum.RIGHT: Wheel(DirectionEnum.RIGHT, pca9633, diameter),
+            DirectionEnum.LEFT: Wheel(DirectionEnum.LEFT, driver, diameter, calibration=calibration),
+            DirectionEnum.RIGHT: Wheel(DirectionEnum.RIGHT, driver, diameter, calibration=calibration),
         }
 
         self._initMotorDriver()
 
     @property
     def left(self) -> Wheel:
+        """Přístup k levému motoru."""
         return self._wheels[DirectionEnum.LEFT]
 
     @property
     def right(self) -> Wheel:
+        """Přístup k pravému motoru."""
         return self._wheels[DirectionEnum.RIGHT]
 
+    @property
+    def driver(self) -> Any:
+        return self._driver
+
     def _initMotorDriver(self) -> None:
-        """Inicializuje PCA9633 driver."""
-        self._pca9633.writeTwoRegisters(
-            PCA9633_registers.MODE1, 0x00,
-            PCA9633_registers.LEDOUT, 0xAA
-        )
+        """Inicializuje driver motorů (probuzení ze spánku a nastavení PWM režimu)."""
+        if hasattr(self._driver, "initMotorDriver"):
+            self._driver.initMotorDriver()
+        elif hasattr(self._driver, "writeTwoRegisters"):
+            self._driver.writeTwoRegisters(
+                PCA9633_registers.MODE1, 0x00,
+                PCA9633_registers.LEDOUT, 0xAA
+            )
 
     # ---------------------------------------------------------
     # Diferenciální kinematika
@@ -63,23 +78,18 @@ class Wheels:
         Nastaví rychlost robota pomocí diferenciální kinematiky.
 
         Args:
-            vMps (float): dopředná rychlost robota v m/s
-            omegaRad (float): úhlová rychlost v rad/s (kladná = zatáčení vlevo)
+            vMps (float): Dopředná rychlost robota v m/s (kladná = vpřed, záporná = vzad).
+            omegaRad (float): Úhlová rychlost otáčení v rad/s (kladná = zatáčení vlevo).
         """
-
         vLeft = vMps - omegaRad * self._halfWheelBase
         vRight = vMps + omegaRad * self._halfWheelBase
 
-        # aplikace rychlostí
         self.left.setLinearSpeed(vLeft)
         self.right.setLinearSpeed(vRight)
 
-    # ---------------------------------------------------------
-
     def emergencyShutdown(self) -> None:
-        """Bezpečně zastaví všechny motory, ale chyby propaguje dál."""
+        """Bezpečně a okamžitě zastaví všechny motory."""
         log.error("Emergency stop!")
-
         errors = []
 
         for side, wheel in self._wheels.items():
@@ -90,10 +100,10 @@ class Wheels:
                 errors.append(e)
 
         if errors:
-            # propagujeme první chybu (nebo můžeš vytvořit vlastní)
             raise errors[0]
 
     def setSpeed(self, speeds: dict) -> None:
+        """Nastaví PWM rychlosti ze slovníku {DirectionEnum: pwm}."""
         for side, wheel in self._wheels.items():
             wheel.setSpeed(speeds[side])
 
@@ -103,7 +113,6 @@ class Wheels:
             wheel.stop()
 
     def update(self) -> None:
-        """Periodicky aktualizuje oba motory."""
+        """Periodická aktualizace obou motorů."""
         for wheel in self._wheels.values():
             wheel.update()
-

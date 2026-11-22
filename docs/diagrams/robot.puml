@@ -1,0 +1,50 @@
+@startuml robot
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam classFontStyle bold
+
+namespace joycar {
+
+    class JoyCarRobot {
+        - _i2c: I2C
+        - _linearSpeed: float
+        - _angularSpeed: float
+        + sensors: Sensors
+        + wheels: Wheels
+        + lights: LightsControl
+        + horn: HornController
+        + lcd: TextDisplay
+        + __init__(i2c: I2C, wheelDiameter: float, wheelBase: float, line_sensors: int, driver: Any, calibration: CalibrateFactors, lcd_enabled: bool)
+        + update()
+        + setVelocity(vMps: float, omegaRad: float)
+        + rideLine(baseSpeed: float, turnGain: float)
+        + stop()
+        + emergencyShutdown()
+        + playHonk(honk_data: HonkData)
+        + stopHonk()
+        + exitCrossRoads_start(timeoutMs: int)
+        + exitCrossRoads(direction, forward: float, angular: float) -> bool
+        + turningToLine_start(timeoutMs: int)
+        + turningToLine(direction, angularSpeed: float) -> bool
+        + getSituationLine() -> int | None
+    }
+
+    note right of JoyCarRobot
+        <b>Fasáda celého robota JoyCar (Design Pattern Facade)</b>
+        Sdružuje všechny hardwarové subsystémy robota:
+        - <b>sensors</b>: Čtení čáry (2–6 senzorů) a překážek
+        - <b>wheels</b>: Řízení podvozku (PCA9633 / PCA9685) s kalibrací
+        - <b>lights</b>: NeoPixel světla (potkávací, blinkry, brzdová)
+        - <b>horn</b>: Zvukový subsystém a melodie
+        - <b>lcd</b>: Alfanumerický textový displej (zapínatelný)
+        Řízeno neblokujícím vzorem Superloop přes metodu update().
+    end note
+
+    JoyCarRobot --> Sensors
+    JoyCarRobot --> Wheels
+    JoyCarRobot --> LightsControl
+    JoyCarRobot --> HornController
+    JoyCarRobot --> TextDisplay
+}
+
+@enduml

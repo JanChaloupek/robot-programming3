@@ -1,0 +1,84 @@
+@startuml motion
+!theme plain
+skinparam classAttributeIconSize 0
+
+namespace joycar {
+
+    enum DirectionEnum {
+        LEFT
+        RIGHT
+    }
+
+    class CalibrateFactors {
+        + minimumAngularSpeed: float
+        + minPwm_WhenStopped: int
+        + minPwm_InMotion: int
+        + a: float
+        + b: float
+        + maxPwm: int
+        + __init__(minimumAngularSpeed: float, minPwm_WhenStopped: int, minPwm_InMotion: int, a: float, b: float, maxPwm: int)
+        + calculatePwm(angularSpeed: float) -> int
+        + getMinimumPwm(isStopped: bool) -> int
+        + {static} forPCA9633(a: float, b: float) -> CalibrateFactors
+        + {static} forPCA9685(a: float, b: float) -> CalibrateFactors
+    }
+
+    note bottom of CalibrateFactors
+        <b>Lineární model motoru:</b>
+        PWM = a * |omega| + b
+        - a: směrnice (strmost)
+        - b: posun (offset z klidu)
+        Podporuje 8bitový rozsah (-255..255) i 12bitový (-4095..4095).
+    end note
+
+    class Wheel {
+        - _side: DirectionEnum
+        - _driver: Any
+        - _calibration: CalibrateFactors
+        - _maxPwm: int
+        - _deadzone: int
+        - _targetPwm: int
+        - _lastAppliedPwm: int
+        + __init__(side: DirectionEnum, driver: Any, diameter: float, calibration: CalibrateFactors, maxPwm: int)
+        + setSpeed(pwm: int)
+        + stop()
+        + setAngularSpeed(rps: float)
+        + setAngularSpeedRad(omegaRad: float)
+        + setLinearSpeed(vMps: float)
+        + update()
+    }
+
+    class Wheels {
+        - _driver: Any
+        - _halfWheelBase: float
+        - _wheels: dict[DirectionEnum, Wheel]
+        + left: Wheel
+        + right: Wheel
+        + __init__(driver: Any, diameter: float, wheelBase: float, calibration: CalibrateFactors)
+        + setVelocity(vMps: float, omegaRad: float)
+        + emergencyShutdown()
+        + setSpeed(speeds: dict)
+        + stop()
+        + update()
+    }
+
+    class PCA9633 {
+        + writeRegister(reg: int, value: int)
+        + writeTwoRegisters(firstReg: int, firstVal: int, secondReg: int, secondVal: int)
+    }
+
+    class PCA9685 {
+        + MAX_PWM: int = 4095
+        + initMotorDriver()
+        + writeRegister(reg: int, value: int)
+        + writePwmToHbridge(channel: int, value: int)
+    }
+
+    Wheels *-- Wheel : "left, right"
+    Wheel o-- CalibrateFactors : "volitelná kalibrace"
+    Wheel --> PCA9633 : "driver 8bit (-255..255)"
+    Wheel --> PCA9685 : "driver 12bit (-4095..4095)"
+    Wheel --> DirectionEnum
+}
+
+@enduml

@@ -1,0 +1,48 @@
+@startuml sm
+!theme plain
+skinparam classAttributeIconSize 0
+
+namespace joycar {
+
+    class Step {
+        + name: str
+        + __init__(name: str)
+    }
+
+    abstract class Task {
+        + isTerminated: bool
+        + isFailure: bool
+        + isSuccess: bool
+        + update()
+    }
+
+    class CPU {
+        - _tasks: list[Task]
+        + tick()
+        + addTask(task: Task)
+        + removeTask(task: Task)
+    }
+
+    abstract class AbstractSM {
+        - _actualStep: Step
+        - _nextStep: Step
+        + actualStep: Step
+        + update()
+        + step(step: Step)
+        + endSM()
+    }
+
+    class CrossRoadsSM {
+        - _robot: JoyCarRobot
+        - _commands: Commands
+        + start()
+        + executeMission()
+    }
+
+    Task <|-- AbstractSM
+    AbstractSM <|-- CrossRoadsSM
+    CPU o-- Task : "plánuje úlohy v Superloopu"
+    AbstractSM --> Step : "aktuální / další krok"
+}
+
+@enduml

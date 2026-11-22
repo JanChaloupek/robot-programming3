@@ -1,0 +1,46 @@
+@startuml lcd
+!theme plain
+skinparam classAttributeIconSize 0
+
+namespace joycar {
+
+    class TextDisplay {
+        - _i2c: Any
+        - _address: int
+        - _rows: int
+        - _cols: int
+        - _enabled: bool
+        - _backlight: bool
+        - _hardwarePresent: bool
+        - _cursorCol: int
+        - _cursorRow: int
+        + is_enabled: bool
+        + __init__(i2c: Any, address: int, rows: int, cols: int, enabled: bool)
+        + enable()
+        + disable()
+        + backlight_on()
+        + backlight_off()
+        + clear()
+        + move_to(col: int, row: int)
+        + write(text: str)
+        + putstr(text: str)
+        + writeLine(row: int, text: str)
+        + writePosition(x: int, y: int, theta: int)
+        - _initHardware()
+        - _writeRaw(byte_val: int) -> bool
+        - _sendCommand(cmd: int)
+        - _sendData(data: int)
+    }
+
+    note right of TextDisplay
+        <b>Ovladač textového LCD displeje (HD44780 + PCF8574 na I2C)</b>
+        - Podpora displejů 16×2 i 20×4 znaků.
+        - <b>Možnost zapnutí a vypnutí (enable/disable):</b>
+          Při vypnutém displeji nebo nepřipojeném HW neběží I2C komunikace
+          a kód nebrzdí hlavní smyčku Superloopu.
+        - Samostatné ovládání podsvícení (backlight_on/off).
+        - Speciální metoda <b>writePosition(x, y, theta)</b> pro výuku odometrie.
+    end note
+}
+
+@enduml

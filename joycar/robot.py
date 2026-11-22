@@ -47,6 +47,9 @@ from joycar.wheels import Wheels
 from joycar.lights import LightsControl, BeamsEnum
 from joycar.direction import DirectionEnum
 from joycar.sound import HornController, HonkData
+from joycar.calibration import CalibrateFactors
+from joycar.pca9685 import PCA9685
+from joycar.lcd import TextDisplay
 
 
 class JoyCarRobot:
@@ -65,7 +68,12 @@ class JoyCarRobot:
         neopixel_pin = board.P0,
         lights: LightsControl = None,
         buzzer_pin = None,
-        horn: HornController = None
+        horn: HornController = None,
+        line_sensors: int = 3,
+        driver: Any = None,
+        calibration: CalibrateFactors = None,
+        lcd: TextDisplay = None,
+        lcd_enabled: bool = False
     ) -> None:
         """
         Inicializuje všechny periferie a subsystémy robota JoyCar.
@@ -78,16 +86,28 @@ class JoyCarRobot:
             lights (LightsControl|None): Volitelná instance světelného subsystému (pro testy s test-double).
             buzzer_pin: Pin mikrokontroléru připojený k bzučáku (výchozí board.BUZZER).
             horn (HornController|None): Volitelná instance zvukového kontroléru.
+            line_sensors (int): Počet senzorů čáry (2, 3, 4, 5 nebo 6). Výchozí: 3.
+            driver (Any|None): Budič motorů (PCA9633, PCA9685 nebo řetězec 'PCA9685').
+            calibration (CalibrateFactors|None): Volitelná kalibrace motorů.
+            lcd (TextDisplay|None): Volitelná instance textového LCD displeje.
+            lcd_enabled (bool): Zda má být textový LCD displej aktivní (výchozí False).
         """
         self._i2c = i2c
 
         # Inicializace I2C čipů podvozku
         pcf8574 = PCF8574(i2c)
-        pca9633 = PCA9633(i2c)
+
+        # Volba budiče motorů podle zadaného HW (PCA9633 vs PCA9685)
+        if driver == "PCA9685":
+            motor_driver = PCA9685(i2c)
+        elif driver is not None:
+            motor_driver = driver
+        else:
+            motor_driver = PCA9633(i2c)
 
         # Inicializace subsystémů robota
-        self.sensors = Sensors(pcf8574)
-        self.wheels = Wheels(pca9633, diameter=wheelDiameter, wheelBase=wheelBase)
+        self.sensors = Sensors(pcf8574, lineSensorCount=line_sensors)
+        self.wheels = Wheels(motor_driver, diameter=wheelDiameter, wheelBase=wheelBase, calibration=calibration)
 
         if lights is not None:
             self.lights = lights
@@ -101,6 +121,12 @@ class JoyCarRobot:
             self.horn = horn
         else:
             self.horn = HornController(pin=buzzer_pin)
+
+        # Textový LCD displej (volitelný, lze zapnout/vypnout)
+        if lcd is not None:
+            self.lcd = lcd
+        else:
+            self.lcd = TextDisplay(i2c, enabled=lcd_enabled)
 
         # Aktuální kinematický stav robota
         self._linearSpeed = 0.0

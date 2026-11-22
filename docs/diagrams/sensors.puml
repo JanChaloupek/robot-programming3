@@ -1,0 +1,96 @@
+@startuml sensors
+!theme plain
+skinparam classAttributeIconSize 0
+
+namespace joycar {
+
+    enum CrossRoadType {
+        NONE = 0
+        LEFT = 1
+        RIGHT = 2
+        CROSS = 3
+    }
+
+    enum LineSituationEnum {
+        LINE = 1
+        CROSSROADS = 2
+    }
+
+    abstract class BaseLineTracker {
+        + {static} sensorCount: int
+        + {static} xorMask: int
+        + {abstract} getLineDirection(s: Sensors) -> int | None
+        + {abstract} getTypeCrossRoads(s: Sensors) -> int
+        + isCrossRoads(s: Sensors) -> bool
+    }
+
+    class LineTracker2 {
+        + getLineDirection(s: Sensors) -> int | None
+        + getTypeCrossRoads(s: Sensors) -> int
+    }
+
+    class LineTracker3 {
+        + getLineDirection(s: Sensors) -> int | None
+        + getTypeCrossRoads(s: Sensors) -> int
+    }
+
+    class LineTracker4 {
+        + getLineDirection(s: Sensors) -> int | None
+        + getTypeCrossRoads(s: Sensors) -> int
+    }
+
+    class LineTracker5 {
+        + getLineDirection(s: Sensors) -> int | None
+        + getTypeCrossRoads(s: Sensors) -> int
+    }
+
+    class LineTracker6 {
+        + getLineDirection(s: Sensors) -> int | None
+        + getTypeCrossRoads(s: Sensors) -> int
+    }
+
+    class Sensors {
+        - _pcf8574: PCF8574
+        - _tracker: BaseLineTracker
+        - _timerLostLine: Timer
+        - _data: int
+        + lineSensorCount: int
+        + __init__(pcf8574: PCF8574, lostLineTimeoutMs: int, lineSensorCount: int)
+        + setLineSensorCount(count: int)
+        + updateSensorData()
+        + areActive(sensorMask: int) -> bool
+        + isAnyActive(sensorMask: int) -> bool
+        + isLeftOnLine() -> bool
+        + isMiddleOnLine() -> bool
+        + isRightOnLine() -> bool
+        + isObstacleLeft() -> bool
+        + isObstacleRight() -> bool
+        + isAnyObstacle() -> bool
+        + getLineDirection() -> int | None
+        + getTypeCrossRoads() -> int
+        + isCrossRoads() -> bool
+        + getSituationLine() -> int | None
+        + update()
+    }
+
+    note right of BaseLineTracker
+        <b>Strategie pro 2 až 6 senzorů čáry</b>
+        Umožňuje snadno měnit hardware podvozku:
+        - <b>LineTracker2</b>: 2 senzory (začátečníci)
+        - <b>LineTracker3</b>: 3 tovární senzory JoyCar
+        - <b>LineTracker4</b>: 4 senzory (2 středové + 2 vnější)
+        - <b>LineTracker5</b>: 5 senzorů (3 středové + 2 předsazené krajní)
+        - <b>LineTracker6</b>: 6 senzorů (plná výbava z 2-SW_GIT)
+    end note
+
+    Sensors o-- BaseLineTracker : "_tracker"
+    BaseLineTracker <|-- LineTracker2
+    BaseLineTracker <|-- LineTracker3
+    BaseLineTracker <|-- LineTracker4
+    BaseLineTracker <|-- LineTracker5
+    BaseLineTracker <|-- LineTracker6
+    Sensors --> CrossRoadType
+    Sensors --> LineSituationEnum
+}
+
+@enduml
