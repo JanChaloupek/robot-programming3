@@ -21,9 +21,9 @@ té doby nemůže číst infračervené senzory čáry, nemůže reagovat na př
 a spolehlivě havaruje nebo sjede z trati!
 
 Více podrobností o zákazu sleep():
-- file:///C:/Projekty/pomucky/superloop.md (metafora šéfkuchaře a orchestru)
-- file:///C:/Projekty/pomucky/sleep.md (rozdíl v blokování MicroPython vs CircuitPython)
-- file:///C:/Projekty/pomucky/compare_tick_function.md (proč používáme adafruit_ticks)
+- https://github.com/JanChaloupek/pomucky/blob/main/superloop.md (metafora šéfkuchaře a orchestru)
+- https://github.com/JanChaloupek/pomucky/blob/main/sleep.md (rozdíl v blokování MicroPython vs CircuitPython)
+- https://github.com/JanChaloupek/pomucky/blob/main/compare_tick_function.md (proč používáme adafruit_ticks)
 
 Jak funguje neblokující HornController:
 --------------------------------------

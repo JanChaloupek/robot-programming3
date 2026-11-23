@@ -5,7 +5,7 @@ Vzorový výukový modul pro studenty:
 -----------------------------------
 Tento modul představuje ústředního „dirigenta“ celého robota podle vzoru Superloop
 (viz metafora orchestru v studijním materiálu:
- file:///C:/Projekty/pomucky/superloop.md).
+ https://github.com/JanChaloupek/pomucky/blob/main/superloop.md).
 
 Architektura robota:
 --------------------

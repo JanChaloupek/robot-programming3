@@ -65,7 +65,7 @@ V autonomní robotice **nesmíme používat blokující čekání** typu `time.s
 Při jízdě rychlostí 0.3 m/s by i krátké zpoždění 300 ms znamenalo, že robot ujede téměř 10 cm naslepo bez možnosti reagovat na křižovatku nebo překážku.
 
 Celý projekt funguje jako **orchestr**:
-- Hlavní smyčka v [code.py](file:///C:/Users/honza/OneDrive/R_D/Základy%20stavby%20a%20programování%20robotů/3-SW_GIT/code.py) neustále tiká:
+- Hlavní smyčka v [code.py](code.py) neustále tiká:
   ```python
   while not button_a.was_pressed():
       CPU.tick()      # Krok logiky stavového automatu
@@ -74,14 +74,14 @@ Celý projekt funguje jako **orchestr**:
           log.flush(5)
   ```
 - Žádný subsystém neblokuje procesor; časování se řídí neblokujícími časovači `Timer` a `Period`.
-- 📖 *Podrobné vysvětlení:* [superloop.md](file:///C:/Projekty/pomucky/superloop.md) a [sleep.md](file:///C:/Projekty/pomucky/sleep.md).
+- 📖 *Podrobné vysvětlení:* [superloop.md](https://github.com/JanChaloupek/pomucky/blob/main/superloop.md) a [sleep.md](https://github.com/JanChaloupek/pomucky/blob/main/sleep.md).
 
 ### B. Přesné časování přes `adafruit_ticks`
 Místo funkce `time.monotonic()` (která v CircuitPythonu používá 32bitová plovoucí čísla float32 a po několika hodinách ztrácí přesnost na milisekundy) využíváme celočíselné funkce `ticks_ms()` a `ticks_diff()` z knihovny `adafruit_ticks`.
-- 📖 *Podrobné vysvětlení:* [compare_tick_function.md](file:///C:/Projekty/pomucky/compare_tick_function.md).
+- 📖 *Podrobné vysvětlení:* [compare_tick_function.md](https://github.com/JanChaloupek/pomucky/blob/main/compare_tick_function.md).
 
 ### C. Návrhový vzor Fasáda (`JoyCarRobot`)
-Třída `JoyCarRobot` v [joycar/robot.py](file:///C:/Users/honza/OneDrive/R_D/Základy%20stavby%20a%20programování%20robotů/3-SW_GIT/joycar/robot.py) sjednocuje všechny hardwarové komponenty robota do jednoho intuitivního rozhraní:
+Třída `JoyCarRobot` v [joycar/robot.py](joycar/robot.py) sjednocuje všechny hardwarové komponenty robota do jednoho intuitivního rozhraní:
 - `robot.rideLine(baseSpeed=0.2, turnGain=0.4)` – proporcionální sledování čáry.
 - `robot.setVelocity(vMps, omegaRad)` – diferenciální kinematika dopředné a úhlové rychlosti.
 - `robot.stop()` – bezpečné zastavení s rozsvícením brzdových světel.
@@ -161,7 +161,7 @@ V superloopu se zprávy dávkově odesílají pomocí `log.flush(max_line=5)`, c
 5. Stiskem tlačítka **A** na desce Pico:ed robota kdykoliv bezpečně zastavíte.
 
 ### B. Zadání vlastní navigační trasy křižovatek
-V souboru [code.py](file:///C:/Users/honza/OneDrive/R_D/Základy%20stavby%20a%20programování%20robotů/3-SW_GIT/code.py) můžete změnit itinerář v proměnné `route`:
+V souboru [code.py](code.py) můžete změnit itinerář v proměnné `route`:
 
 ```python
 from joycar import Commands, DirectionEnum
@@ -193,7 +193,7 @@ robot.stop()
 ```
 
 ### D. Tvorba vlastních melodií a znělek
-V modulu [joycar/sound.py](file:///C:/Users/honza/OneDrive/R_D/Základy%20stavby%20a%20programování%20robotů/3-SW_GIT/joycar/sound.py) můžete definovat vlastní melodii pomocí třídy `HonkData`:
+V modulu [joycar/sound.py](joycar/sound.py) můžete definovat vlastní melodii pomocí třídy `HonkData`:
 
 ```python
 from joycar.sound import HonkData
@@ -238,7 +238,7 @@ Testy ověřují všechny situace:
 
 ## 6. Odkazy na studijní pomůcky
 
-Veškeré teoretické podklady a vysvětlující texty pro studenty naleznete v lokálním repozitáři pomůcek:
-- [superloop.md](file:///C:/Projekty/pomucky/superloop.md) – Metafora šéfkuchaře a orchestru: proč autonomní robot nesmí používat blokující `sleep()`.
-- [compare_tick_function.md](file:///C:/Projekty/pomucky/compare_tick_function.md) – Proč používáme `adafruit_ticks` místo `time.monotonic()`.
-- [sleep.md](file:///C:/Projekty/pomucky/sleep.md) – Rozdíl v blokování procesoru mezi MicroPythonem a CircuitPythonem.
+Veškeré teoretické podklady a vysvětlující texty pro studenty naleznete v repozitáři pomůcek:
+- [superloop.md](https://github.com/JanChaloupek/pomucky/blob/main/superloop.md) – Metafora šéfkuchaře a orchestru: proč autonomní robot nesmí používat blokující `sleep()`.
+- [compare_tick_function.md](https://github.com/JanChaloupek/pomucky/blob/main/compare_tick_function.md) – Proč používáme `adafruit_ticks` místo `time.monotonic()`.
+- [sleep.md](https://github.com/JanChaloupek/pomucky/blob/main/sleep.md) – Rozdíl v blokování procesoru mezi MicroPythonem a CircuitPythonem.

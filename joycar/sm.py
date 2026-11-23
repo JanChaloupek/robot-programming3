@@ -7,9 +7,9 @@ Tento modul implementuje vzor stavového automatu (Finite State Machine – FSM)
 v kombinaci s kooperativním plánovačem (CPU dispečer).
 
 Doporučené studijní materiály (repozitář pomůcek):
-- file:///C:/Projekty/pomucky/superloop.md – Proč robot nesmí používat sleep() a jak funguje superloop
-- file:///C:/Projekty/pomucky/sleep.md – Blokování runtime a proč používat neblokující architekturu
-- file:///C:/Projekty/pomucky/compare_tick_function.md – Časování bez ztráty přesnosti s adafruit_ticks
+- https://github.com/JanChaloupek/pomucky/blob/main/superloop.md – Proč robot nesmí používat sleep() a jak funguje superloop
+- https://github.com/JanChaloupek/pomucky/blob/main/sleep.md – Blokování runtime a proč používat neblokující architekturu
+- https://github.com/JanChaloupek/pomucky/blob/main/compare_tick_function.md – Časování bez ztráty přesnosti s adafruit_ticks
 
 Proč používáme stavový automat namísto sekvenčního kódu se sleep()?
 -------------------------------------------------------------------

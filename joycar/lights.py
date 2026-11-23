@@ -11,8 +11,8 @@ Tento modul ukazuje, jak na robotovi realizovat kompletní automobilové osvětl
 - neblokující blinkry a výstražná světla
 
 Doporučené studijní materiály (repozitář pomůcek):
-- file:///C:/Projekty/pomucky/superloop.md – Princip neblokujícího blikání pomocí objektu Timer/Period
-- file:///C:/Projekty/pomucky/sleep.md – Proč v obsluze světel nikdy nesmíme volat sleep()
+- https://github.com/JanChaloupek/pomucky/blob/main/superloop.md – Princip neblokujícího blikání pomocí objektu Timer/Period
+- https://github.com/JanChaloupek/pomucky/blob/main/sleep.md – Proč v obsluze světel nikdy nesmíme volat sleep()
 
 Hardware robota JoyCar:
 -----------------------

@@ -21,9 +21,9 @@ Představte si robota jako orchestr:
 
 Podrobné výukové materiály pro studenty:
 ----------------------------------------
-- Proč nepoužívat sleep: file:///C:/Projekty/pomucky/superloop.md
-- Přesné časování tiku:  file:///C:/Projekty/pomucky/compare_tick_function.md
-- Blokování v Pythonu:   file:///C:/Projekty/pomucky/sleep.md
+- Proč nepoužívat sleep: https://github.com/JanChaloupek/pomucky/blob/main/superloop.md
+- Přesné časování tiku:  https://github.com/JanChaloupek/pomucky/blob/main/compare_tick_function.md
+- Blokování v Pythonu:   https://github.com/JanChaloupek/pomucky/blob/main/sleep.md
 
 Jak program funguje:
 --------------------

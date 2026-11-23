@@ -7,8 +7,8 @@ Tento modul spojuje stavový automat (`AbstractSM`), plánovač `CPU`, senzory a
 do komplexní autonomní mise: robot má projet trasu složenou z posloupnosti křižovatek.
 
 Doporučené studijní materiály (repozitář pomůcek):
-- file:///C:/Projekty/pomucky/superloop.md – Proč je stavový automat ideální pro navigaci bez blokování
-- file:///C:/Projekty/pomucky/compare_tick_function.md – Stabilní časování stavů pomocí ticks_ms()
+- https://github.com/JanChaloupek/pomucky/blob/main/superloop.md – Proč je stavový automat ideální pro navigaci bez blokování
+- https://github.com/JanChaloupek/pomucky/blob/main/compare_tick_function.md – Stabilní časování stavů pomocí ticks_ms()
 
 Fyzikální princip manévru na křižovatce:
 ---------------------------------------

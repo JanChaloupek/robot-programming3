@@ -46,12 +46,6 @@ class PCA9685:
 
     MAX_PWM = 4095
 
-    # Zpětná kompatibilita s původními atributy třídy:
-    RegMODE1 = PCA9685_registers.MODE1
-    RegMODE1_VALUE = PCA9685_registers.MODE1_VALUE
-    RegMODE2 = PCA9685_registers.MODE2
-    RegPwm00 = PCA9685_registers.PWM00
-
     def __init__(self, i2c: Any, address: int = 0x61) -> None:
         """
         Inicializace PCA9685.

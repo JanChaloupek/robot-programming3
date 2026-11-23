@@ -19,13 +19,6 @@ class TestPCA9685(unittest.TestCase):
         self.assertEqual(PCA9685_registers.LED0_ON_L, 0x06)
         self.assertEqual(PCA9685_registers.PRE_SCALE, 0xFE)
 
-    def test_backwards_compatible_attributes_on_pca9685(self):
-        """Ověří, že třída PCA9685 má zachovány atributy RegMODE1 atd."""
-        self.assertEqual(PCA9685.RegMODE1, PCA9685_registers.MODE1)
-        self.assertEqual(PCA9685.RegMODE1_VALUE, PCA9685_registers.MODE1_VALUE)
-        self.assertEqual(PCA9685.RegMODE2, PCA9685_registers.MODE2)
-        self.assertEqual(PCA9685.RegPwm00, PCA9685_registers.PWM00)
-
     def test_init_motor_driver(self):
         """Ověří, že initMotorDriver probudí oscilátor zápisem MODE1_VALUE do MODE1."""
         hw = FakeI2C()
