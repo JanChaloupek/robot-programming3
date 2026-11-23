@@ -26,7 +26,7 @@ Fyzikální princip manévru na křižovatce:
    začne hledat novou čáru. Jakmile ji střední senzor najde, pokračuje se jízdou.
 """
 
-from joycar.sm import AbstractSM, Task, Step
+from utils.sm import AbstractSM, Task, Step
 from utils.log import log
 from joycar.robot import JoyCarRobot
 from joycar.sensors import LineSituationEnum

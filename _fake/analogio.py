@@ -9,10 +9,11 @@ class AnalogIn:
     - read() vrací přesně tuto hodnotu
     - read_count sleduje počet čtení
     """
+    default_value = 0
 
     def __init__(self, pin):
         self.pin = pin
-        self.value = 0
+        self.value = AnalogIn.default_value
         self.read_count = 0
 
     def deinit(self):

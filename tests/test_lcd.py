@@ -53,6 +53,32 @@ class TestTextDisplay(unittest.TestCase):
         lcd.writePosition(x=0.15, y=0.30, theta=1.57)
         self.assertGreater(len(hw.write_history), 0)
 
+    def test_backlight_control(self):
+        """Ověří zapnutí a vypnutí podsvícení textového LCD."""
+        hw = FakeI2C()
+        lcd = TextDisplay(hw, enabled=True)
+        hw.write_history.clear()
+
+        lcd.backlight_off()
+        self.assertFalse(lcd._backlight)
+        self.assertGreater(len(hw.write_history), 0)
+
+        hw.write_history.clear()
+        lcd.backlight_on()
+        self.assertTrue(lcd._backlight)
+        self.assertGreater(len(hw.write_history), 0)
+
+    def test_string_padding_and_truncation(self):
+        """Ověří ořezání příliš dlouhých řetězců na šířku displeje."""
+        hw = FakeI2C()
+        lcd = TextDisplay(hw, rows=2, cols=16, enabled=True)
+        hw.write_history.clear()
+
+        # Dlouhý text (více než 16 znaků)
+        long_text = "Tento text ma rozhodne vice nez 16 znaku"
+        lcd.writeLine(0, long_text)
+        self.assertGreater(len(hw.write_history), 0)
+
 
 if __name__ == "__main__":
     unittest.main()

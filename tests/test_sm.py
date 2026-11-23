@@ -6,7 +6,7 @@ Ukazuje studentům, jak testovat stavový automat v deterministickém simulovan�
 """
 
 import unittest
-from joycar.sm import CPU, Task, Step, AbstractSM
+from utils.sm import CPU, Task, Step, AbstractSM
 import _fake.adafruit_ticks as fake_ticks
 
 
@@ -110,6 +110,92 @@ class TestStateMachine(unittest.TestCase):
 
         self.assertFalse(sm.success)
         self.assertFalse(CPU.existSM())
+
+    def test_cpu_hierarchical_parent_child(self):
+        """Ověří vazbu mezi rodičovským a dceřiným automatem v CPU (parentOf)."""
+        class ParentSM(AbstractSM):
+            pass
+
+        class ChildSM(AbstractSM):
+            pass
+
+        parent = ParentSM()
+        CPU.add(parent)
+        self.assertEqual(parent.cpu_no, 1)
+
+        child = ChildSM()
+        CPU.add(child, cpu_no_parent=parent.cpu_no)
+        self.assertEqual(child.cpu_no, 2)
+
+        # parentOf vrátí instanci rodiče
+        self.assertIs(CPU.parentOf(child.cpu_no), parent)
+        self.assertIsNone(CPU.parentOf(parent.cpu_no))
+        self.assertIsNone(CPU.parentOf(999))
+
+    def test_cpu_multiple_concurrent_sms(self):
+        """Ověří paralelní běh dvou nezávislých stavových automatů."""
+        class CountingSM(AbstractSM):
+            TASK_work = Task('work', tick_time=50)
+
+            def __init__(self, target):
+                super().__init__()
+                self.target = target
+                self.count = 0
+
+            def __start(self):
+                self.nextTask(self.TASK_work)
+
+            def __work(self):
+                self.count += 1
+                if self.count >= self.target:
+                    self.endTask()
+
+        sm1 = CountingSM(target=2)
+        sm2 = CountingSM(target=4)
+        CPU.add(sm1)
+        CPU.add(sm2)
+
+        self.assertEqual(len(CPU._CPU__Q), 2)
+
+        # Procházíme tiky v čase
+        for _ in range(25):
+            fake_ticks.advance_ticks(50)
+            CPU.tick()
+            if not CPU.existSM():
+                break
+
+        self.assertTrue(sm1.success)
+        self.assertTrue(sm2.success)
+        self.assertFalse(CPU.existSM())
+
+    def test_step_autonext_chaining(self):
+        """Ověří, že třída Step s autoNext=True automaticky přechází na další krok ve frontě."""
+        class ChainedSM(AbstractSM):
+            STEP1 = Step('krok1')
+            STEP2 = Step('krok2')
+
+            def __init__(self):
+                super().__init__(tasks=[self.STEP1, self.STEP2])
+                self.history = []
+
+            def __krok1(self):
+                self.history.append('krok1_done')
+
+            def __krok2(self):
+                self.history.append('krok2_done')
+                self.endTask()
+
+        sm = ChainedSM()
+        CPU.add(sm)
+
+        for _ in range(10):
+            fake_ticks.advance_ticks(50)
+            CPU.tick()
+            if not CPU.existSM():
+                break
+
+        self.assertEqual(sm.history, ['krok1_done', 'krok2_done'])
+        self.assertTrue(sm.success)
 
 
 if __name__ == "__main__":

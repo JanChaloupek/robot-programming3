@@ -61,6 +61,131 @@ class TestLineTrackers(unittest.TestCase):
         s.updateSensorData()
         self.assertEqual(s.getLineDirection(), 5)
 
+    def test_line_tracker_3_sensors(self):
+        """Ověří vyhodnocování pro tovární 3 senzory JoyCar."""
+        hw = FakeI2C()
+        s = createSensors(hw, lineSensorCount=3)
+
+        # Střední senzor (0x08) -> jedeme rovně (směr 0)
+        hw.queue_read([0x08])
+        s.updateSensorData()
+        self.assertEqual(s.getLineDirection(), 0)
+
+        # Střední + levý (0x0C) -> mírně vlevo (směr +1)
+        hw.queue_read([0x0C])
+        s.updateSensorData()
+        self.assertEqual(s.getLineDirection(), 1)
+        self.assertEqual(s.getTypeCrossRoads(), CrossRoadType.LEFT)
+
+        # Pouze levý (0x04) -> výrazně vlevo (směr +3)
+        hw.queue_read([0x04])
+        s.updateSensorData()
+        self.assertEqual(s.getLineDirection(), 3)
+
+        # Střední + pravý (0x18) -> mírně vpravo (směr -1)
+        hw.queue_read([0x18])
+        s.updateSensorData()
+        self.assertEqual(s.getLineDirection(), -1)
+        self.assertEqual(s.getTypeCrossRoads(), CrossRoadType.RIGHT)
+
+        # Pouze pravý (0x10) -> výrazně vpravo (směr -3)
+        hw.queue_read([0x10])
+        s.updateSensorData()
+        self.assertEqual(s.getLineDirection(), -3)
+
+        # Levý + pravý (0x14) nebo všechny (0x1C) -> křižovatka CROSS
+        hw.queue_read([0x14])
+        s.updateSensorData()
+        self.assertIsNone(s.getLineDirection())
+        self.assertEqual(s.getTypeCrossRoads(), CrossRoadType.CROSS)
+
+    def test_line_tracker_4_sensors(self):
+        """Ověří vyhodnocování pro 4 senzory (2 středové + 2 vnější)."""
+        hw = FakeI2C()
+        s = createSensors(hw, lineSensorCount=4)
+
+        # Oba vnitřní senzory (0x08 | 0x80 = 0x88) -> střed (0)
+        hw.queue_read([0x88])
+        s.updateSensorData()
+        self.assertEqual(s.getLineDirection(), 0)
+
+        # Vnitřní levý (0x08) -> mírně vlevo (+1)
+        hw.queue_read([0x08])
+        s.updateSensorData()
+        self.assertEqual(s.getLineDirection(), 1)
+
+        # Vnější levý + vnitřní levý (0x0C) -> středně vlevo (+2), křižovatka LEFT
+        hw.queue_read([0x0C])
+        s.updateSensorData()
+        self.assertEqual(s.getLineDirection(), 2)
+        self.assertEqual(s.getTypeCrossRoads(), CrossRoadType.LEFT)
+
+        # Pouze vnější levý (0x04) -> více vlevo (+3)
+        hw.queue_read([0x04])
+        s.updateSensorData()
+        self.assertEqual(s.getLineDirection(), 3)
+
+        # Vnější pravý + vnitřní pravý (0x10 | 0x80 = 0x90) -> křižovatka RIGHT
+        hw.queue_read([0x90])
+        s.updateSensorData()
+        self.assertEqual(s.getLineDirection(), -2)
+        self.assertEqual(s.getTypeCrossRoads(), CrossRoadType.RIGHT)
+
+        # Levý + pravý vnější (0x14) -> křižovatka CROSS
+        hw.queue_read([0x14])
+        s.updateSensorData()
+        self.assertIsNone(s.getLineDirection())
+        self.assertEqual(s.getTypeCrossRoads(), CrossRoadType.CROSS)
+
+    def test_line_tracker_5_sensors(self):
+        """Ověří vyhodnocování pro 5 senzorů (3 středové + 2 předsazené krajní)."""
+        hw = FakeI2C()
+        s = createSensors(hw, lineSensorCount=5)
+
+        # Předsazený FarLeft (0x01) -> směr +5, křižovatka LEFT
+        hw.queue_read([0x01])
+        s.updateSensorData()
+        self.assertEqual(s.getLineDirection(), 5)
+        self.assertEqual(s.getTypeCrossRoads(), CrossRoadType.LEFT)
+
+        # Předsazený FarRight (0x02) -> směr -5, křižovatka RIGHT
+        hw.queue_read([0x02])
+        s.updateSensorData()
+        self.assertEqual(s.getLineDirection(), -5)
+        self.assertEqual(s.getTypeCrossRoads(), CrossRoadType.RIGHT)
+
+        # Oba předsazené současně (0x03) -> křižovatka CROSS
+        hw.queue_read([0x03])
+        s.updateSensorData()
+        self.assertIsNone(s.getLineDirection())
+        self.assertEqual(s.getTypeCrossRoads(), CrossRoadType.CROSS)
+
+    def test_line_tracker_6_sensors(self):
+        """Ověří vyhodnocování pro 6 senzorů (plná výbava z 2-SW_GIT s 9 zónami)."""
+        hw = FakeI2C()
+        s = createSensors(hw, lineSensorCount=6)
+
+        # Extrémní levé vyosení FarLeft (0x01) -> směr +6
+        hw.queue_read([0x01])
+        s.updateSensorData()
+        self.assertEqual(s.getLineDirection(), 6)
+
+        # Extrémní pravé vyosení FarRight (0x02) -> směr -6
+        hw.queue_read([0x02])
+        s.updateSensorData()
+        self.assertEqual(s.getLineDirection(), -6)
+
+        # Střední dvojice (0x88) -> směr 0
+        hw.queue_read([0x88])
+        s.updateSensorData()
+        self.assertEqual(s.getLineDirection(), 0)
+
+        # Oba krajní aktivní (0x03) -> křižovatka CROSS
+        hw.queue_read([0x03])
+        s.updateSensorData()
+        self.assertIsNone(s.getLineDirection())
+        self.assertEqual(s.getTypeCrossRoads(), CrossRoadType.CROSS)
+
 
 if __name__ == "__main__":
     unittest.main()

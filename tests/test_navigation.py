@@ -11,7 +11,7 @@ from busio import I2C as FakeI2C
 from tests.create import createRobot
 from joycar.navigation import Commands, CrossRoadsSM
 from joycar.direction import DirectionEnum
-from joycar.sm import CPU
+from utils.sm import CPU
 import _fake.adafruit_ticks as fake_ticks
 
 

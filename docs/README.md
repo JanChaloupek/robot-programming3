@@ -101,7 +101,9 @@ Strategie vyhodnocování čáry je oddělena do přehledných tříd (`LineTrac
 - **Vizuální indikátor běhu:** Deska Pico:ed obsahuje stavovou LED (`picoed.led`). V metodě `robot.update()` probíhá neblokující přepínání této LED v periodě 150 ms pomocí `Period(timeout_ms=150)`.
 - **Diagnostika pro studenty i pedagogy:** Dokud robot běží a hlavní smyčka Superloop nezamrzla (např. v nechtěném `time.sleep()` nebo nekonečném cyklu), LED rovnoměrně pulzuje. Při neočekávané chybě, zastavení nebo `robot.emergencyShutdown()` se LED automaticky zhasne.
 
-### G) Stavový automat (SM) a kooperativní plánovač CPU
+### G) Stavový automat (SM) a kooperativní plánovač CPU (`utils/sm.py`)
+- **Umístění modulu:**
+  - Stavový automat a plánovač CPU jsou zcela nezávislé na hardwaru robota a jsou umístěny v balíčku `utils/sm.py` (dostupné přímo přes `from utils import CPU, AbstractSM, Task, Step`).
 - **Autorství a původ architektury:**
   - Původní architekturu a jádro stavového automatu (třídy `CPU`, `Task`, `AbstractSM`) vytvořil student **Martin Dostál** v prvním běhu kurzu pro platformu micro:bit.
   - Výukové video Martina Dostála vysvětlující princip návrhu stavového automatu: [YouTube – Stavové automaty](https://www.youtube.com/watch?v=NJkbWeEMMuw).

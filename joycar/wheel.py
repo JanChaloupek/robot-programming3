@@ -10,7 +10,7 @@ Tento modul poskytuje třídu Wheel, která:
 """
 
 from typing import Optional, Any
-from joycar.constants import PI
+from utils.constants import PI
 from joycar.direction import DirectionEnum
 from joycar.pca9633 import PCA9633_registers
 from joycar.calibration import CalibrateFactors

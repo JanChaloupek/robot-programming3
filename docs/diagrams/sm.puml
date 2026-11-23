@@ -2,54 +2,67 @@
 !theme plain
 skinparam classAttributeIconSize 0
 
-namespace joycar {
+namespace utils {
 
     class Step {
         + name: str
-        + __init__(name: str)
+        + autoNext: bool = True
+        + __init__(name: str, tick_time: int)
     }
 
-    abstract class Task {
-        + isTerminated: bool
-        + isFailure: bool
-        + isSuccess: bool
-        + update()
+    class Task {
+        + name: str
+        + tickTime: int
+        + autoNext: bool = False
+        + id: int
+        + __init__(name: str, tick_time: int)
     }
 
     class CPU {
-        - _tasks: list[Task]
-        + tick()
-        + addTask(task: Task)
-        + removeTask(task: Task)
+        - {static} __NO: int
+        - {static} __Q: dict
+        + {static} add(sm: AbstractSM, cpu_no_parent: int) -> AbstractSM
+        + {static} parentOf(cpu_no: int) -> AbstractSM | None
+        + {static} remove(cpu_no: int)
+        + {static} tick()
+        + {static} existSM() -> bool
+        + {static} clear()
     }
 
     abstract class AbstractSM {
-        - _actualStep: Step
-        - _nextStep: Step
-        + actualStep: Step
-        + update()
-        + step(step: Step)
-        + endSM()
+        - _stack: list[Task]
+        - _curTask: Task
+        - _nextTask: Task
+        - _period: Period
+        + success: bool | None
+        + cpu_no: int
+        + __init__(tasks: list[Task], tick_time_default: int)
+        + nextTask(task: Task)
+        + endTask()
+        + failureTask()
+        + tick()
     }
 
-    class CrossRoadsSM {
-        - _robot: JoyCarRobot
-        - _commands: Commands
-        + start()
-        + executeMission()
-    }
-
-    Task <|-- AbstractSM
-    AbstractSM <|-- CrossRoadsSM
-    CPU o-- Task : "plánuje úlohy v Superloopu"
-    AbstractSM --> Step : "aktuální / další krok"
+    Task <|-- Step
+    AbstractSM o-- Task : "zásobník úloh (_stack)"
+    CPU o-- AbstractSM : "plánuje běžící automaty (__Q)"
 
     note bottom of CPU
-        <b>Kooperativní dispečer CPU a stavový automat (SM)</b>
+        <b>Kooperativní dispečer CPU a stavový automat (SM) v balíčku utils</b>
         Původní architektura pro micro:bit: <b>Martin Dostál</b> (1. běh kurzu)
         Video: https://www.youtube.com/watch?v=NJkbWeEMMuw
         Úprava pro Pico:ed v2 a přímé přechody: <b>Jan Chaloupek</b>
     end note
+}
+
+namespace joycar {
+    class CrossRoadsSM {
+        - _robot: JoyCarRobot
+        - _commands: Commands
+        + __init__(robot: JoyCarRobot, commands: Commands)
+    }
+
+    utils.AbstractSM <|-- CrossRoadsSM
 }
 
 @enduml

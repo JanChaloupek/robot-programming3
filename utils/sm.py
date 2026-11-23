@@ -55,8 +55,8 @@ Hierarchie a životní cyklus:
 """
 
 from adafruit_ticks import ticks_ms
-from utils.period import Period
-from utils.log import log
+from .period import Period
+from .log import log
 
 
 class CPU:
