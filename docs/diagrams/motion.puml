@@ -62,9 +62,28 @@ namespace joycar {
         + update()
     }
 
+    class PCA9633_registers {
+        + {static} MODE1: int
+        + {static} MODE2: int
+        + {static} PWM0: int
+        + {static} PWM1: int
+        + {static} PWM2: int
+        + {static} PWM3: int
+        + {static} LEDOUT: int
+    }
+
     class PCA9633 {
         + writeRegister(reg: int, value: int)
         + writeTwoRegisters(firstReg: int, firstVal: int, secondReg: int, secondVal: int)
+    }
+
+    class PCA9685_registers {
+        + {static} MODE1: int
+        + {static} MODE1_VALUE: int
+        + {static} MODE2: int
+        + {static} PWM00: int
+        + {static} ALL_LED_ON_L: int
+        + {static} PRE_SCALE: int
     }
 
     class PCA9685 {
@@ -73,6 +92,9 @@ namespace joycar {
         + writeRegister(reg: int, value: int)
         + writePwmToHbridge(channel: int, value: int)
     }
+
+    PCA9633 ..> PCA9633_registers : "používá adresy registrů"
+    PCA9685 ..> PCA9685_registers : "používá adresy registrů"
 
     Wheels *-- Wheel : "left, right"
     Wheel o-- CalibrateFactors : "volitelná kalibrace"

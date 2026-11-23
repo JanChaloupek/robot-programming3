@@ -20,7 +20,7 @@ from .battery import battery_voltage
 from .i2c import I2C
 from .pcf8574 import PCF8574
 from .pca9633 import PCA9633, PCA9633_registers
-from .pca9685 import PCA9685
+from .pca9685 import PCA9685, PCA9685_registers
 from .calibration import CalibrateFactors
 from .lcd import TextDisplay
 from .robot import JoyCarRobot

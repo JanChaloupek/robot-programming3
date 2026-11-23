@@ -12,16 +12,45 @@ nebo při přechodu na výkonnější řízení motorů (např. přes modul L298
 from typing import Any
 
 
+class PCA9685_registers:
+    """
+    Adresy registrů a řídicí konstanty čipu PCA9685.
+
+    Podobně jako PCA9633_registers poskytuje symbolické konstanty
+    pro přehlednou a výukově srozumitelnou práci s I2C registry.
+    """
+    MODE1 = 0x00         # Řídicí registr režimu 1 (řízení spánku a auto-incrementu)
+    MODE1_VALUE = 0x20   # Běžný provoz s povoleným auto-incrementem adres registrů
+    MODE2 = 0x01         # Řídicí registr režimu 2
+    SUBADR1 = 0x02       # I2C subadresa 1
+    SUBADR2 = 0x03       # I2C subadresa 2
+    SUBADR3 = 0x04       # I2C subadresa 3
+    ALLCALLADR = 0x05    # AllCall I2C adresa
+
+    # Registry pro kanál 0 (ON_L, ON_H, OFF_L, OFF_H)
+    LED0_ON_L = 0x06
+    LED0_ON_H = 0x07
+    LED0_OFF_L = 0x08
+    LED0_OFF_H = 0x09
+    PWM00 = 0x06         # Alias pro začátek registrů kanálu 0
+
+    ALL_LED_ON_L = 0xFA  # Hromadné nastavení všech kanálů
+    ALL_LED_ON_H = 0xFB
+    ALL_LED_OFF_L = 0xFC
+    ALL_LED_OFF_H = 0xFD
+    PRE_SCALE = 0xFE     # Nastavení předděličky pro frekvenci PWM
+
+
 class PCA9685:
     """Ovladač I2C PWM generátoru PCA9685 pro řízení motorů JoyCaru."""
 
     MAX_PWM = 4095
 
-    # Významné registry čipu PCA9685:
-    RegMODE1 = 0x00         # Řídicí registr režimu 1 (řízení spánku a auto-incrementu)
-    RegMODE1_VALUE = 0x20   # Běžný provoz s povoleným auto-incrementem adres registrů
-    RegMODE2 = 0x01         # Řídicí registr režimu 2
-    RegPwm00 = 0x06         # Začátek registrů kanálu 0 (ON_L, ON_H, OFF_L, OFF_H)
+    # Zpětná kompatibilita s původními atributy třídy:
+    RegMODE1 = PCA9685_registers.MODE1
+    RegMODE1_VALUE = PCA9685_registers.MODE1_VALUE
+    RegMODE2 = PCA9685_registers.MODE2
+    RegPwm00 = PCA9685_registers.PWM00
 
     def __init__(self, i2c: Any, address: int = 0x61) -> None:
         """
@@ -53,7 +82,7 @@ class PCA9685:
 
     def initMotorDriver(self) -> None:
         """Inicializuje PCA9685: probudí oscilátor ze spánku a povolí auto-increment."""
-        self.writeRegister(self.RegMODE1, self.RegMODE1_VALUE)
+        self.writeRegister(PCA9685_registers.MODE1, PCA9685_registers.MODE1_VALUE)
 
     def savePwm(self, value: int) -> tuple:
         """
@@ -90,7 +119,7 @@ class PCA9685:
 
         # Rychlý zápis všech 8 bajtů obou kanálů najednou
         data = bytearray([
-            channel * 4 + self.RegPwm00,
+            channel * 4 + PCA9685_registers.PWM00,
             val_on0 & 0xFF, val_on0 >> 8, val_off0 & 0xFF, val_off0 >> 8,
             val_on1 & 0xFF, val_on1 >> 8, val_off1 & 0xFF, val_off1 >> 8,
         ])
