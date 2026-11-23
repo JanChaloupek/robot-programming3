@@ -88,13 +88,14 @@ Třída `JoyCarRobot` v [joycar/robot.py](joycar/robot.py) sjednocuje všechny h
 - `robot.emergencyShutdown()` – okamžité nouzové odpojení motorů, světel i zvuku.
 - `robot.playHonk(tutu)` – spuštění znělky na pozadí.
 
-### D. Konečné stavové automaty (`joycar/sm.py`)
+### D. Konečné stavové automaty (`utils/sm.py`)
 Kooperativní framework pro stavové automaty umožňuje definovat komplexní autonomní mise:
 - `CPU`: Centrální dispečer a plánovač.
 - `Task`: Stav s periodickým voláním těla.
 - `Step`: Jednorázový krok s automatickým přechodem (`autoNext = True`).
 - `AbstractSM`: Základní třída s fázemi `__krok__init()` $\rightarrow$ `__krok()` $\rightarrow$ `__krok__done()`.
 - Podpora Python name-manglingu: metody pojmenované `__nazev` jsou korektně dohledány i po přejmenování kompilátorem.
+- *Původní návrh:* Martin Dostál ([výukové video](https://www.youtube.com/watch?v=NJkbWeEMMuw)), portace pro Pico:ed a přímé přechody: Jan Chaloupek.
 
 ### E. Bufferované logování bez zpoždění (`utils/log.py`)
 Výpis na sériovou linku (`print`) přes USB je operace náročná na čas procesoru. Modul `utils.log` ukládá ladicí zprávy do paměťového bufferu (`log.info()`, `log.debug()`, `log.error()`).
@@ -109,37 +110,44 @@ V superloopu se zprávy dávkově odesílají pomocí `log.flush(max_line=5)`, c
 ├── code.py                 # Hlavní vstupní program spouštěný po zapnutí Pico:ed
 ├── code_joycar.py          # Samostatně spustitelná vzorová mise pro JoyCar
 ├── code_cutebot.py         # Archiv původního kódu pro platformu CuteBotPro
-├── run_test.py             # Spouštěč kompletní testovací sady na PC (65 testů)
+├── run_test.py             # Spouštěč kompletní testovací sady na PC (115 testů)
 │
 ├── joycar/                 # Modulární balík robota JoyCar
 │   ├── __init__.py         # Export veřejného API balíku
 │   ├── robot.py            # Hlavní řídicí fasáda robota JoyCarRobot
 │   ├── sensors.py          # Logika čáry, detekce křižovatek, debounce filtr
-│   ├── sm.py               # Stavový automat (CPU, Task, Step, AbstractSM)
+│   ├── line_trackers.py    # Strategie sledování čáry pro 2 až 6 senzorů
 │   ├── navigation.py       # Řízení misí na křižovatkách (CrossRoadsSM, Commands)
 │   ├── lights.py           # NeoPixel světelný subsystém (potkávací, blinkry, brzdy)
 │   ├── sound.py            # Neblokující bzučák (HornController, HonkData, znělky)
 │   ├── wheels.py           # Diferenciální podvozek (dva motory)
 │   ├── wheel.py            # Řízení jednotlivého kola, deadzone, bezpečný reverz
+│   ├── calibration.py      # Model lineární kalibrace motorů CalibrateFactors
 │   ├── display.py          # Rychlý framebuffer ovladač LED matice 17x7
 │   ├── pca9633.py          # Nízkoúrovňový I2C driver PWM čipu PCA9633
+│   ├── pca9685.py          # Nízkoúrovňový I2C driver 16kanálového PWM čipu PCA9685
 │   ├── pcf8574.py          # Nízkoúrovňový I2C expandér PCF8574
+│   ├── lcd.py              # Alfanumerický textový LCD displej (HD44780 na I2C)
+│   ├── sonar.py            # Ultrazvukový dálkoměr HC-SR04 v metrech [m]
 │   ├── i2c.py              # Zabezpečený I2C context manager (zamykání sběrnice)
 │   ├── battery.py          # Měření napětí akumulátoru přes pin P2
 │   └── direction.py        # Společná enumerace směrů (LEFT, RIGHT, FORWARD...)
 │
-├── utils/                  # Univerzální pomocné nástroje
+├── utils/                  # Univerzální pomocné nástroje (nezávislé na robotovi)
+│   ├── __init__.py         # Export veřejného API nástrojů
 │   ├── timer.py            # Jednorázový časovač Timer
 │   ├── period.py           # Periodický časovač Period (s automatickým restartem)
-│   └── log.py              # Bufferovaný logovací systém s časovými značkami
+│   ├── log.py              # Bufferovaný logovací systém s časovými značkami
+│   ├── sm.py               # Kooperativní plánovač a stavový automat (CPU, AbstractSM)
+│   └── constants.py        # Matematické konstanty (PI, TWO_PI, HALF_PI)
 │
-├── tests/                  # 15 testovacích modulů s 65 unit testy
-│   ├── test_code_simulation.py     # Simulace životního cyklu code.py
-│   ├── test_navigation.py          # Simulace kompletního průjezdu křižovatkou
-│   ├── test_sound.py               # Test neblokujícího přehrávání tónů
-│   ├── test_robot_integration.py   # Test propojení fasády robota
-│   ├── test_lights.py              # Test časování světel a brzd
-│   ├── test_sensors_line.py        # Test sledování čáry a debounce filtru
+├── tests/                  # Testovací sady se 115 unit testy
+│   ├── test_battery.py             # Test měření napětí akumulátoru
+│   ├── test_display.py             # Test maticového displeje Pico:ed
+│   ├── test_heartbeat.py           # Test LEDky života v Superloopu
+│   ├── test_sonar.py               # Test dálkoměru v základních jednotkách SI [m]
+│   ├── test_line_trackers.py       # Test vyhodnocování čáry pro 2 až 6 senzorů
+│   ├── test_sm.py                  # Test stavových automatů a hierarchie CPU
 │   └── ...
 │
 ├── _fake/                  # Simulovaný hardware pro deterministické testy na PC
@@ -222,7 +230,7 @@ python run_test.py
 
 Výstup testovací sady:
 ```
-Ran 65 tests in 0.015s
+Ran 115 tests in 0.035s
 OK
 ALL TESTS PASSED ✔
 ```
