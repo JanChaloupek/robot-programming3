@@ -29,8 +29,8 @@ class Wheels:
 
         Args:
             driver (Any): Budič motorů (PCA9633 nebo PCA9685).
-            diameter (float): Průměr kol v metrech (výchozí 0.065 m = 65 mm).
-            wheelBase (float): Rozvor (vzdálenost mezi koly) v metrech (výchozí 0.14 m = 140 mm).
+            diameter (float): Průměr kol v metrech (výchozí 0.065 m).
+            wheelBase (float): Rozvor (vzdálenost mezi koly) v metrech (výchozí 0.14 m).
             calibration (Optional[CalibrateFactors]): Kalibrační hodnoty motorů.
         """
         self._driver = driver

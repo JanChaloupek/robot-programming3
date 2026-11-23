@@ -15,8 +15,8 @@ nebo:
     time.sleep(0.5)                          # ZABLOKUJE běh na 500 ms!
     buzzer.duty_cycle = 0
 
-Když robot jede po čáře rychlostí 0.3 m/s (30 cm za sekundu) a potká křižovatku,
-blokující čekání 500 ms způsobí, že robot ujede 15 centimetrů „poslepu“. Během
+Když robot jede po čáře rychlostí 0.3 m/s a potká křižovatku,
+blokující čekání 500 ms způsobí, že robot ujede 0.15 m „poslepu“. Během
 té doby nemůže číst infračervené senzory čáry, nemůže reagovat na překážku
 a spolehlivě havaruje nebo sjede z trati!
 

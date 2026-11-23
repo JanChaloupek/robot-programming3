@@ -37,7 +37,7 @@ class Wheel:
         Args:
             side (DirectionEnum): Strana motoru (LEFT nebo RIGHT).
             driver (Any): Budič motoru (PCA9633 nebo PCA9685).
-            diameter (float): Průměr kola v metrech (výchozí 0.065 m = 65 mm).
+            diameter (float): Průměr kola v metrech (výchozí 0.065 m).
             calibration (Optional[CalibrateFactors]): Kalibrační koeficienty motoru.
             maxPwm (Optional[int]): Maximální rozsah PWM (255 nebo 4095).
                 Při nezadání se určí automaticky z driveru / kalibrace.

@@ -18,7 +18,7 @@ Fyzikální princip manévru na křižovatce:
 2. ZASTAVENÍ NA STOP-ČÁŘE (krizovatka):
    Robot zabrzdí, rozsvítí brzdová světla a vyčte z plánu `Commands`, kam má jet.
 3. POPOJETÍ DO STŘEDU (popojed):
-   Protože senzory jsou cca 5 cm před osou otáčení kol, robot musí kousek popojet rovně,
+   Protože senzory jsou cca 0.05 m před osou otáčení kol, robot musí kousek popojet rovně,
    aby se osa kol ocitla přímo nad křížením čar.
 4. OTOČENÍ NA NOVOU ČÁRU (zatoc):
    Robot rotuje na místě se zapnutým blinkrem. Aby okamžitě nechytil starou čáru, ze které

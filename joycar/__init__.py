@@ -23,6 +23,7 @@ from .pca9633 import PCA9633, PCA9633_registers
 from .pca9685 import PCA9685, PCA9685_registers
 from .calibration import CalibrateFactors
 from .lcd import TextDisplay
+from .sonar import Sonar
 from .robot import JoyCarRobot
 from .sensors import Sensors, LineSituationEnum, CrossRoadType
 from .line_trackers import (
@@ -56,7 +57,8 @@ from utils.log import log, LogLevelEnum, Log
 def createJoyCarRobot(line_sensors: int = 3,
                       driver: Any = None,
                       calibration: Optional[CalibrateFactors] = None,
-                      lcd_enabled: bool = False) -> JoyCarRobot:
+                      lcd_enabled: bool = False,
+                      sonar_enabled: bool = False) -> JoyCarRobot:
     """
     Vytvoří a nakonfiguruje instanci robota JoyCar.
 
@@ -65,11 +67,13 @@ def createJoyCarRobot(line_sensors: int = 3,
         driver (Any): Budič motorů (PCA9633, PCA9685 nebo řetězec 'PCA9685').
         calibration (Optional[CalibrateFactors]): Kalibrační hodnoty motorů.
         lcd_enabled (bool): Zda má být textový LCD displej aktivní (výchozí False).
+        sonar_enabled (bool): Zda má být ultrazvukový dálkoměr aktivní (výchozí False).
     """
     return JoyCarRobot(
         I2C(pico_i2c),
         line_sensors=line_sensors,
         driver=driver,
         calibration=calibration,
-        lcd_enabled=lcd_enabled
+        lcd_enabled=lcd_enabled,
+        sonar_enabled=sonar_enabled
     )

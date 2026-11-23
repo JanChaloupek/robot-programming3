@@ -185,17 +185,18 @@ class TextDisplay:
         self.move_to(0, row)
         self.write(padded)
 
-    def writePosition(self, x: int, y: int, theta: int) -> None:
+    def writePosition(self, x: float, y: float, theta: float) -> None:
         """
-        Výuková obrazovka odometrie (jak bylo v 2-SW_GIT):
-        Zobrazí aktuální souřadnice robota (x, y v cm, theta ve stupních).
+        Výuková obrazovka odometrie:
+        Zobrazí aktuální souřadnice robota v základních SI jednotkách:
+        x, y v metrech [m], theta v radiánech [rad].
         """
         if not self.is_enabled:
             return
         self.writeLine(0, "   Pozice JoyCaru")
-        self.writeLine(1, f" X: {x:4d} cm")
-        self.writeLine(2, f" Y: {y:4d} cm")
-        self.writeLine(3, f" T: {theta:4d} deg")
+        self.writeLine(1, f" X: {x:6.3f} m")
+        self.writeLine(2, f" Y: {y:6.3f} m")
+        self.writeLine(3, f" T: {theta:6.3f} rad")
 
     # -------------------------------------------------------------------------
     # Nízkoúrovňová komunikace s HD44780 ve 4bitovém režimu

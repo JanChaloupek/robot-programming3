@@ -31,6 +31,7 @@ flowchart TD
     Robot --> Lights["LightsControl (NeoPixel páska)"]
     Robot --> Horn["HornController (Zvuk / melodie)"]
     Robot --> LCD["TextDisplay (Alfanumerické LCD)"]
+    Robot --> Sonar["Sonar (Ultrazvuk HC-SR04 v metrech)"]
 
     Wheels --> WheelLeft["Wheel (Levé kolo)"]
     Wheels --> WheelRight["Wheel (Pravé kolo)"]
@@ -80,6 +81,22 @@ Strategie vyhodnocování čáry je oddělena do přehledných tříd (`LineTrac
 - **Vypínatelný za běhu (`enable()` / `disable()`):** Pokud není displej připojen nebo je vypnutý, vůbec nezatěžuje I2C sběrnici a robot funguje dál bez jakýchkoli chyb.
 - Speciální metoda pro výuku odometrie: `writePosition(x, y, theta)`.
 
+### E) Ultrazvukový senzor překážek (`Sonar`) v základních jednotkách SI
+- **Hardwarové zapojení:** Piny `board.P8` (Trigger) a `board.P12` (Echo).
+- **Striktní dodržování základních jednotek SI:** Všechny vzdálenosti jsou výhradně v **metrech [m]** (např. bezpečný odstup `0.20 m`, nikoliv centimetry).
+- **Neblokující řízení v Superloop:** Využívá časovač `Period(timeout_ms=60)` pro měření bez brzdění hlavní smyčky.
+- **Vyhlazovací filtr:** Klouzavý průměr ze 3 vzorků eliminuje falešné odrazy a zákmity.
+- **Vypínatelný za běhu (`enable()` / `disable()`):** Pokud robot sonar fyzicky nemá, zůstává neaktivní.
+- **Integrace s řízením robota:**
+  ```python
+  robot = createJoyCarRobot(sonar_enabled=True)
+  # Rychlý dotaz na překážku do 0.20 m:
+  if robot.isObstacleAhead(distance_m=0.20):
+      robot.stop()
+  # Nebo automatické zastavení v autonomní jízdě:
+  robot.rideLine(baseSpeed=0.25, minObstacleDistance=0.20)
+  ```
+
 ---
 
 ## 4. Přehled PlantUML diagramů v `docs/diagrams/`
@@ -90,6 +107,7 @@ Strategie vyhodnocování čáry je oddělena do přehledných tříd (`LineTrac
 | [`motion.puml`](diagrams/motion.puml) | Kinematika, třídy `Wheel`, `Wheels`, `CalibrateFactors`, budiče `PCA9633` a `PCA9685` |
 | [`sensors.puml`](diagrams/sensors.puml) | Třída `Sensors` a strategie pro 2–6 čidel (`LineTracker2` až `LineTracker6`) |
 | [`lcd.puml`](diagrams/lcd.puml) | Alfanumerický displej `TextDisplay` s protokolem HD44780 a řízením podsvícení |
+| [`sonar.puml`](diagrams/sonar.puml) | Ultrazvukový senzor vzdálenosti `Sonar` (vzdálenost v metrech [m]) |
 | [`sm.puml`](diagrams/sm.puml) | Stavový automat (`CPU`, `Task`, `Step`, `AbstractSM`, `CrossRoadsSM`) |
 
 ---

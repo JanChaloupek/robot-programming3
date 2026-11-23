@@ -62,7 +62,7 @@ flowchart TD
 
 ### A. Vzor Superloop & zákaz blokujícího `sleep()`
 V autonomní robotice **nesmíme používat blokující čekání** typu `time.sleep()`.
-Při jízdě rychlostí 0.3 m/s by i krátké zpoždění 300 ms znamenalo, že robot ujede téměř 10 cm naslepo bez možnosti reagovat na křižovatku nebo překážku.
+Při jízdě rychlostí 0.3 m/s by i krátké zpoždění 300 ms znamenalo, že robot ujede téměř 0.10 m naslepo bez možnosti reagovat na křižovatku nebo překážku.
 
 Celý projekt funguje jako **orchestr**:
 - Hlavní smyčka v [code.py](code.py) neustále tiká:

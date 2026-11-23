@@ -1,0 +1,45 @@
+@startuml sonar
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam classFontStyle bold
+
+namespace joycar {
+
+    class Sonar {
+        + {static} SPEED_OF_SOUND: float = 343.0
+        + {static} MAX_DISTANCE_M: float = 3.0
+        + {static} FILTER_SIZE: int = 3
+        - _trigger_pin: Any
+        - _echo_pin: Any
+        - _period: Period
+        - _enabled: bool
+        - _first_run: bool
+        - _distance: float | None
+        - _history: list[float]
+        - _consecutive_timeouts: int
+        - _mock_distance: float | None
+        - _hw_driver: Any
+        + is_enabled: bool
+        + distance: float | None
+        + __init__(trigger_pin: Any, echo_pin: Any, timeout_ms: int, enabled: bool)
+        + enable()
+        + disable()
+        + is_obstacle_near(threshold_m: float) -> bool
+        + set_mock_distance(distance_m: float | None)
+        + measure() -> float | None
+        + update()
+        - _initHardware()
+        - _readRawDistance() -> float | None
+    }
+
+    note right of Sonar
+        <b>Ultrazvukový dálkoměr HC-SR04</b>
+        - <b>Základní SI jednotky:</b> Vše v metrech [m] (např. 0.20 m)
+        - <b>Frekvence měření:</b> Period(timeout_ms=60) -> neblokující Superloop
+        - <b>Vyhlazovací filtr:</b> Klouzavý průměr (3 vzorky)
+        - <b>Vypínatelný za běhu:</b> enable() / disable()
+        - <b>Výchozí piny:</b> board.P8 (Trigger), board.P12 (Echo)
+    end note
+}
+
+@enduml

@@ -50,6 +50,7 @@ from joycar.sound import HornController, HonkData
 from joycar.calibration import CalibrateFactors
 from joycar.pca9685 import PCA9685
 from joycar.lcd import TextDisplay
+from joycar.sonar import Sonar
 
 
 class JoyCarRobot:
@@ -73,15 +74,17 @@ class JoyCarRobot:
         driver: Any = None,
         calibration: CalibrateFactors = None,
         lcd: TextDisplay = None,
-        lcd_enabled: bool = False
+        lcd_enabled: bool = False,
+        sonar: Sonar = None,
+        sonar_enabled: bool = False
     ) -> None:
         """
         Inicializuje všechny periferie a subsystémy robota JoyCar.
 
         Args:
             i2c (I2C): Zabezpečený I2C wrapper s context-managerem pro automatické zamykání sběrnice.
-            wheelDiameter (float): Průměr hnacích kol v metrech (výchozí 0.065 m = 65 mm).
-            wheelBase (float): Vzdálenost mezi středy kol v metrech (výchozí 0.095 m = 95 mm).
+            wheelDiameter (float): Průměr hnacích kol v metrech (výchozí 0.065 m).
+            wheelBase (float): Vzdálenost mezi středy kol v metrech (výchozí 0.095 m).
             neopixel_pin: Pin mikrokontroléru připojený k LED pásku (výchozí P0).
             lights (LightsControl|None): Volitelná instance světelného subsystému (pro testy s test-double).
             buzzer_pin: Pin mikrokontroléru připojený k bzučáku (výchozí board.BUZZER).
@@ -91,6 +94,8 @@ class JoyCarRobot:
             calibration (CalibrateFactors|None): Volitelná kalibrace motorů.
             lcd (TextDisplay|None): Volitelná instance textového LCD displeje.
             lcd_enabled (bool): Zda má být textový LCD displej aktivní (výchozí False).
+            sonar (Sonar|None): Volitelná instance ultrazvukového dálkoměru HC-SR04.
+            sonar_enabled (bool): Zda má být ultrazvukový dálkoměr aktivní (výchozí False).
         """
         self._i2c = i2c
 
@@ -128,6 +133,12 @@ class JoyCarRobot:
         else:
             self.lcd = TextDisplay(i2c, enabled=lcd_enabled)
 
+        # Ultrazvukový dálkoměr HC-SR04 (volitelný, výchozí vypnutý)
+        if sonar is not None:
+            self.sonar = sonar
+        else:
+            self.sonar = Sonar(enabled=sonar_enabled)
+
         # Aktuální kinematický stav robota
         self._linearSpeed = 0.0
         self._angularSpeed = 0.0
@@ -149,12 +160,14 @@ class JoyCarRobot:
         Tato metoda se musí volat v každém průchodu hlavní smyčky `while True:`
         (viz doporučení v superloop.md). Zajistí:
         1. Načtení dat ze senzorů (čára + překážky) a přepočet logiky.
-        2. Bezpečný zápis PWM na motory (ošetření reverzní ochrany a deadzone).
-        3. Aktualizaci blinkrů, brzdových a obrysových světel podle rychlosti.
-        4. Krokování neblokujícího přehrávání tónů bzučáku.
-        5. Odeslání změn framebufferu na displej Pico:ed.
+        2. Aktualizaci ultrazvukového dálkoměru (pokud je povolen).
+        3. Bezpečný zápis PWM na motory (ošetření reverzní ochrany a deadzone).
+        4. Aktualizaci blinkrů, brzdových a obrysových světel podle rychlosti.
+        5. Krokování neblokujícího přehrávání tónů bzučáku.
+        6. Odeslání změn framebufferu na displej Pico:ed.
         """
         self.sensors.update()
+        self.sonar.update()
         self.wheels.update()
         self.lights.update(forwardSpeed=self._linearSpeed)
         self.horn.update()
@@ -182,7 +195,7 @@ class JoyCarRobot:
         self.wheels.setVelocity(vMps, omegaRad)
         log.debug(f"Velocity: v={vMps:.2f} m/s, w={omegaRad:.2f} rad/s")
 
-    def rideLine(self, baseSpeed: float = 0.2, turnGain: float = 0.5) -> None:
+    def rideLine(self, baseSpeed: float = 0.2, turnGain: float = 0.5, minObstacleDistance: float = None) -> None:
         """
         Proporcionální autonomní sledování čáry pomocí čelních IR senzorů.
 
@@ -197,7 +210,13 @@ class JoyCarRobot:
         Args:
             baseSpeed (float): Dopředná rychlost v m/s (výchozí 0.2 m/s).
             turnGain (float): Koeficient citlivosti zatáčení (čím vyšší, tím ostřeji točí).
+            minObstacleDistance (float|None): Bezpečnostní vzdálenost v METRECH.
+                Pokud je detekována překážka blíže než tato mez, robot automaticky zastaví.
         """
+        if minObstacleDistance is not None and self.isObstacleAhead(minObstacleDistance):
+            self.setVelocity(0.0, 0.0)
+            return
+
         direction = self.sensors.getLineDirection()
 
         # Pokud jsme mimo čáru nebo na křižovatce, neprovádíme korekci směru
@@ -207,6 +226,18 @@ class JoyCarRobot:
         # Výpočet úhlové rychlosti (kladný směr = vlevo, záporný = vpravo)
         omega = direction * turnGain
         self.setVelocity(baseSpeed, omega)
+
+    def getObstacleDistance(self) -> Optional[float]:
+        """
+        Vrátí vzdálenost k nejbližší překážce v METRECH (nebo None pokud je volno).
+        """
+        return self.sonar.distance
+
+    def isObstacleAhead(self, distance_m: float = 0.20) -> bool:
+        """
+        Rychlý dotaz, zda je před robotem překážka blíže než zadaná mez v METRECH.
+        """
+        return self.sonar.is_obstacle_near(distance_m)
 
     def stop(self) -> None:
         """

@@ -50,7 +50,7 @@ class TestTextDisplay(unittest.TestCase):
         lcd = TextDisplay(hw, rows=4, cols=20, enabled=True)
         hw.write_history.clear()
 
-        lcd.writePosition(x=15, y=30, theta=90)
+        lcd.writePosition(x=0.15, y=0.30, theta=1.57)
         self.assertGreater(len(hw.write_history), 0)
 
 
