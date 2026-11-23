@@ -15,8 +15,10 @@ namespace joycar {
         + horn: HornController
         + lcd: TextDisplay
         + sonar: Sonar
-        + __init__(i2c: I2C, wheelDiameter: float, wheelBase: float, line_sensors: int, driver: Any, calibration: CalibrateFactors, lcd_enabled: bool, sonar_enabled: bool)
+        + heartbeat_enabled: bool
+        + __init__(i2c: I2C, wheelDiameter: float, wheelBase: float, line_sensors: int, driver: Any, calibration: CalibrateFactors, lcd_enabled: bool, sonar_enabled: bool, heartbeat_enabled: bool)
         + update()
+        - _heartbeatLED()
         + setVelocity(vMps: float, omegaRad: float)
         + rideLine(baseSpeed: float, turnGain: float, minObstacleDistance: float)
         + stop()
@@ -41,6 +43,7 @@ namespace joycar {
         - <b>horn</b>: Zvukový subsystém a melodie
         - <b>lcd</b>: Alfanumerický textový displej (zapínatelný)
         - <b>sonar</b>: Ultrazvukový dálkoměr HC-SR04 (vzdálenost v metrech [m])
+        - <b>heartbeat</b>: Stavová LEDka života na desce Pico:ed (bliká 150 ms)
         Řízeno neblokujícím vzorem Superloop přes metodu update().
     end note
 

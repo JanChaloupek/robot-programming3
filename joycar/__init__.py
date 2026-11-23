@@ -58,7 +58,8 @@ def createJoyCarRobot(line_sensors: int = 3,
                       driver: Any = None,
                       calibration: Optional[CalibrateFactors] = None,
                       lcd_enabled: bool = False,
-                      sonar_enabled: bool = False) -> JoyCarRobot:
+                      sonar_enabled: bool = False,
+                      heartbeat_enabled: bool = True) -> JoyCarRobot:
     """
     Vytvoří a nakonfiguruje instanci robota JoyCar.
 
@@ -68,6 +69,7 @@ def createJoyCarRobot(line_sensors: int = 3,
         calibration (Optional[CalibrateFactors]): Kalibrační hodnoty motorů.
         lcd_enabled (bool): Zda má být textový LCD displej aktivní (výchozí False).
         sonar_enabled (bool): Zda má být ultrazvukový dálkoměr aktivní (výchozí False).
+        heartbeat_enabled (bool): Zda má být aktivní LEDka života (výchozí True).
     """
     return JoyCarRobot(
         I2C(pico_i2c),
@@ -75,5 +77,6 @@ def createJoyCarRobot(line_sensors: int = 3,
         driver=driver,
         calibration=calibration,
         lcd_enabled=lcd_enabled,
-        sonar_enabled=sonar_enabled
+        sonar_enabled=sonar_enabled,
+        heartbeat_enabled=heartbeat_enabled
     )

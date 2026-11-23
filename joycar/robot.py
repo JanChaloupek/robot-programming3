@@ -36,9 +36,15 @@ Příklad základního použití studentem:
 """
 
 import board
+from typing import Optional, Any
 from utils.timer import Timer
+from utils.period import Period
 from utils.log import log
 from joycar.display import display
+try:
+    from picoed import led
+except ImportError:
+    from _fake.picoed import led
 from joycar.i2c import I2C
 from joycar.pcf8574 import PCF8574
 from joycar.pca9633 import PCA9633
@@ -76,7 +82,9 @@ class JoyCarRobot:
         lcd: TextDisplay = None,
         lcd_enabled: bool = False,
         sonar: Sonar = None,
-        sonar_enabled: bool = False
+        sonar_enabled: bool = False,
+        heartbeat_enabled: bool = True,
+        led_device: Any = None
     ) -> None:
         """
         Inicializuje všechny periferie a subsystémy robota JoyCar.
@@ -96,6 +104,8 @@ class JoyCarRobot:
             lcd_enabled (bool): Zda má být textový LCD displej aktivní (výchozí False).
             sonar (Sonar|None): Volitelná instance ultrazvukového dálkoměru HC-SR04.
             sonar_enabled (bool): Zda má být ultrazvukový dálkoměr aktivní (výchozí False).
+            heartbeat_enabled (bool): Zda má být aktivní LEDka života (výchozí True).
+            led_device (Any|None): Ovladač stavové LED (výchozí picoed.led).
         """
         self._i2c = i2c
 
@@ -139,6 +149,11 @@ class JoyCarRobot:
         else:
             self.sonar = Sonar(enabled=sonar_enabled)
 
+        # LEDka života (Heartbeat LED)
+        self._led = led_device if led_device is not None else led
+        self._ledPeriod = Period(timeout_ms=150)
+        self._heartbeat_enabled = heartbeat_enabled
+
         # Aktuální kinematický stav robota
         self._linearSpeed = 0.0
         self._angularSpeed = 0.0
@@ -153,6 +168,34 @@ class JoyCarRobot:
     # Klíčová metoda superloopu
     # -------------------------------------------------------------------------
 
+    def _heartbeatLED(self) -> None:
+        """
+        Blikání LEDky života (Heartbeat LED).
+
+        Vizuální indikátor běhu robota pro studenty i pedagogy:
+        Dokud mikrokontrolér běží a hlavní smyčka Superloop nezamrzla,
+        stavová LED dioda na desce Pico:ed v pravidelném rytmu bliká (150 ms).
+        Pokud program zamrzne (např. v nekonečné blokující smyčce nebo při chybě),
+        LED dioda přestane blikat, což okamžitě signalizuje problém.
+        """
+        if self._heartbeat_enabled and self._led is not None:
+            if self._ledPeriod.isTime(timeout_ms=150):
+                self._led.toggle()
+
+    @property
+    def heartbeat_enabled(self) -> bool:
+        """Vrací True, pokud je aktivní blikání stavové LEDky života."""
+        return self._heartbeat_enabled
+
+    @heartbeat_enabled.setter
+    def heartbeat_enabled(self, value: bool) -> None:
+        self._heartbeat_enabled = value
+        if not value and self._led is not None:
+            try:
+                self._led.off()
+            except Exception:
+                pass
+
     def update(self) -> None:
         """
         Periodická aktualizace všech subsystémů robota.
@@ -164,13 +207,15 @@ class JoyCarRobot:
         3. Bezpečný zápis PWM na motory (ošetření reverzní ochrany a deadzone).
         4. Aktualizaci blinkrů, brzdových a obrysových světel podle rychlosti.
         5. Krokování neblokujícího přehrávání tónů bzučáku.
-        6. Odeslání změn framebufferu na displej Pico:ed.
+        6. Periodické bliknutí LEDky života (Heartbeat LED).
+        7. Odeslání změn framebufferu na displej Pico:ed.
         """
         self.sensors.update()
         self.sonar.update()
         self.wheels.update()
         self.lights.update(forwardSpeed=self._linearSpeed)
         self.horn.update()
+        self._heartbeatLED()
         display.updatePixels()
 
     # -------------------------------------------------------------------------
@@ -250,13 +295,18 @@ class JoyCarRobot:
     def emergencyShutdown(self) -> None:
         """
         Nouzové bezpečnostní zastavení všech subsystémů.
-        Zastaví motory, okamžitě zhasne všechna světla a ztiší bzučák.
+        Zastaví motory, okamžitě zhasne všechna světla, ztiší bzučák a vypne LEDku života.
         """
         self._linearSpeed = 0.0
         self._angularSpeed = 0.0
         self.lights.off()
         self.horn.stop()
         self.wheels.emergencyShutdown()
+        if self._led is not None:
+            try:
+                self._led.off()
+            except Exception:
+                pass
         log.error("JoyCarRobot: emergencyShutdown!")
 
     def playHonk(self, honk_data: HonkData) -> None:

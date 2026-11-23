@@ -43,6 +43,13 @@ namespace joycar {
     AbstractSM <|-- CrossRoadsSM
     CPU o-- Task : "plánuje úlohy v Superloopu"
     AbstractSM --> Step : "aktuální / další krok"
+
+    note bottom of CPU
+        <b>Kooperativní dispečer CPU a stavový automat (SM)</b>
+        Původní architektura pro micro:bit: <b>Martin Dostál</b> (1. běh kurzu)
+        Video: https://www.youtube.com/watch?v=NJkbWeEMMuw
+        Úprava pro Pico:ed v2 a přímé přechody: <b>Jan Chaloupek</b>
+    end note
 }
 
 @enduml

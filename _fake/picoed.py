@@ -155,6 +155,11 @@ class Led:
         self._io.value = new
         self.state_history.append(new)
 
+    @property
+    def is_on(self) -> bool:
+        self._init()
+        return bool(self._io.value)
+
 
 # ---------------------------------------------------------
 # Fake Button

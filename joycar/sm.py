@@ -6,6 +6,15 @@ Vzorový výukový modul pro studenty:
 Tento modul implementuje vzor stavového automatu (Finite State Machine – FSM)
 v kombinaci s kooperativním plánovačem (CPU dispečer).
 
+Historie a autorství jádra stavového automatu:
+----------------------------------------------
+- Původní architekturu a jádro stavového automatu (třídy CPU, Task, AbstractSM a Period)
+  vytvořil student Martin Dostál v prvním běhu kurzu pro platformu micro:bit.
+- Výukové video Martina Dostála vysvětlující princip stavového automatu:
+  https://www.youtube.com/watch?v=NJkbWeEMMuw
+- Upravenou verzi pro Pico:ed v2 (CircuitPython) s přímými přechody mezi stavy,
+  podporou kroků (Step) a integrací s neblokujícím časovačem Timer/Period upravil Jan Chaloupek.
+
 Doporučené studijní materiály (repozitář pomůcek):
 - https://github.com/JanChaloupek/pomucky/blob/main/superloop.md – Proč robot nesmí používat sleep() a jak funguje superloop
 - https://github.com/JanChaloupek/pomucky/blob/main/sleep.md – Blokování runtime a proč používat neblokující architekturu

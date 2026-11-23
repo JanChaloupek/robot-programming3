@@ -97,6 +97,16 @@ Strategie vyhodnocování čáry je oddělena do přehledných tříd (`LineTrac
   robot.rideLine(baseSpeed=0.25, minObstacleDistance=0.20)
   ```
 
+### F) LEDka života (Heartbeat LED)
+- **Vizuální indikátor běhu:** Deska Pico:ed obsahuje stavovou LED (`picoed.led`). V metodě `robot.update()` probíhá neblokující přepínání této LED v periodě 150 ms pomocí `Period(timeout_ms=150)`.
+- **Diagnostika pro studenty i pedagogy:** Dokud robot běží a hlavní smyčka Superloop nezamrzla (např. v nechtěném `time.sleep()` nebo nekonečném cyklu), LED rovnoměrně pulzuje. Při neočekávané chybě, zastavení nebo `robot.emergencyShutdown()` se LED automaticky zhasne.
+
+### G) Stavový automat (SM) a kooperativní plánovač CPU
+- **Autorství a původ architektury:**
+  - Původní architekturu a jádro stavového automatu (třídy `CPU`, `Task`, `AbstractSM`) vytvořil student **Martin Dostál** v prvním běhu kurzu pro platformu micro:bit.
+  - Výukové video Martina Dostála vysvětlující princip návrhu stavového automatu: [YouTube – Stavové automaty](https://www.youtube.com/watch?v=NJkbWeEMMuw).
+  - Portaci na **Pico:ed v2** (CircuitPython), rozšíření o přímé přechody mezi stavy, třídu `Step` (jednorázové kroky) a integraci s knihovnou `Timer`/`Period` zpracoval **Jan Chaloupek**.
+
 ---
 
 ## 4. Přehled PlantUML diagramů v `docs/diagrams/`
